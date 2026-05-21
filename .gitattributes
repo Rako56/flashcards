@@ -1,0 +1,23 @@
+# Force LF line endings for all text files — keeps Prettier `endOfLine: 'lf'`
+# in sync with what git stores. Without this, Windows devs see CRLF↔LF
+# churn on every `pnpm format` run.
+* text=auto eol=lf
+
+# Binary files (don't touch line endings)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.xz binary

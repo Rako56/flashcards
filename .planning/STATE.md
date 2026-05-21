@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 1 of 10 (Foundation)
-Plan: 1 of 10 (Plan 1.1 complete — scaffold shipped)
-Status: Ready to execute Plan 1.2 (ESLint flat v9 + Prettier + husky)
-Last activity: 2026-05-21 — Plan 1.1 executed (Next.js 15.5.18 scaffold + TS strict 100% + 4 route groups + lib/env.ts + lib/utils.ts + reboot CLAUDE.md)
+Plan: 2 of 13 (Plan 1.2 complete — lint/format/hooks shipped)
+Status: Ready to execute Plan 1.3 (Vitest 3.2.4 + coverage gates + jsdom + tests/setup.ts)
+Last activity: 2026-05-21 — Plan 1.2 executed (ESLint v9 flat config + Prettier 3.x + Husky 9 pre-commit/pre-push + lint-staged 15 + 4 lint-fixtures proving gate-break + VS Code workspace settings)
 
-Progress: [█░░░░░░░░░] 10% (Phase 1)
+Progress: [██░░░░░░░░] 15% (Phase 1: 2 of 13 plans done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: ~25 min/plan
-- Total execution time: ~0.4 hours
+- Total plans completed: 2
+- Average duration: ~30 min/plan
+- Total execution time: ~1.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 (Foundation) | 1/10 | ~25 min | ~25 min |
+| 1 (Foundation) | 2/13 | ~60 min | ~30 min |
 
 **Recent Trend:**
-- Last 5 plans: Plan 1.1 (~25 min, 26 files, 0 deviations critical)
-- Trend: baseline established
+- Last 5 plans: Plan 1.1 (~25 min, 26 files, 0 critical deviations), Plan 1.2 (~35 min, 12 files created + 8 modified, 6 auto-resolved Rule 1/3 deviations all related to no-mercy lint surfacing latent issues)
+- Trend: lint gates added now block the type of disease (`: any`, hardcoded UUIDs, deep relative imports, `console.log`) that produced the legacy 435-problem CONCERNS report.
 
 *Updated after each plan completion*
 
@@ -47,6 +47,8 @@ Decisões completas em PROJECT.md "Key Decisions" table. Recentes que afetam Pha
 - **Multi-concurso DB-driven desde dia 1**: arquitetura evita refactor quando lançar 2º concurso
 - **Design system split (Phase 2 tokens + Phase 7 identidade completa)**: destrava produto core sem bloquear no design final
 - **Quality enforced desde commit 1**: TS strict 100% + lint CI + ≥50% coverage core + Sentry — antídoto ao drift do legado
+- **`disableTypeChecked` recipe para config files + lint-fixtures** (Plan 1.2 2026-05-21): typescript-eslint não consegue parsear arquivos fora de `tsconfig.json` `include`. Solução documentada da própria typescript-eslint resolve sem comprometer cobertura — gates AST-based (no-explicit-any, no-console, no-restricted-syntax, no-restricted-imports) seguem ativos via re-set explícito no override de lint-fixtures.
+- **`--no-warn-ignored` em lint-staged ESLint** (Plan 1.2 2026-05-21): sem essa flag, fixtures intencionalmente ignoradas emitem warnings que `--max-warnings 0` promove a erro, bloqueando commits legítimos quando fixtures são staged junto.
 
 ### Pending Todos
 
@@ -79,5 +81,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Plan 1.1 complete (scaffold shipped, commit pending push). Próximo: Plan 1.2 (ESLint + Prettier + husky).
-Resume file: `.planning/phases/01-foundation/01-01-SUMMARY.md`
+Stopped at: Plan 1.2 complete (ESLint v9 flat + Prettier 3 + Husky 9 + 4 lint-fixtures + VS Code settings; commit 1b7bcca pushed to origin/main). Próximo: Plan 1.3 (Vitest 3.2.4 + coverage gates + jsdom + tests/setup.ts).
+Resume file: `.planning/phases/01-foundation/01-02-SUMMARY.md`
