@@ -1,5 +1,10 @@
+// tests/unit/env.test.ts (Plan 1.3)
+// Tests for lib/env.ts env() — Zod-validated server environment with module-level cache.
+//
+// env() is module-cached after first successful parse. Each test resets the cache
+// via resetEnvCacheForTests() before+after to prevent state leak.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { env, resetEnvCacheForTests } from '../env'
+import { env, resetEnvCacheForTests } from '@/lib/env'
 
 describe('env()', () => {
   beforeEach(() => {
