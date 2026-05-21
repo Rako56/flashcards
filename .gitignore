@@ -13,8 +13,10 @@ out/
 # testing
 coverage/
 .playwright/
+playwright/.cache/
 playwright-report/
 test-results/
+blob-report/
 
 # generated types (CI regenerates; locally optional)
 # (DO NOT gitignore — types/database.types.ts MUST be committed)
