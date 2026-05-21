@@ -57,9 +57,7 @@ export function env(): ServerEnv {
   const parsed = serverEnvSchema.safeParse(process.env)
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors
-    throw new Error(
-      `Invalid environment variables:\n${JSON.stringify(fieldErrors, null, 2)}`,
-    )
+    throw new Error(`Invalid environment variables:\n${JSON.stringify(fieldErrors, null, 2)}`)
   }
   cachedEnv = parsed.data
   return cachedEnv

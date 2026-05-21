@@ -11,7 +11,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --max-warnings 0 --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -25,15 +39,25 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18",
+    "@next/eslint-plugin-next": "^15.5",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20.18.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.5.0",
+    "eslint": "^9.18",
+    "eslint-plugin-react-hooks": "^5.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "husky": "9.1.7",
+    "lint-staged": "15.5.2",
     "postcss": "^8.5.15",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6",
     "tailwindcss": "3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.7.3",
+    "typescript-eslint": "^8.20",
     "vitest": "3.2.4"
   }
 }

@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+pnpm-lock.yaml
+*.tsbuildinfo
+types/database.types.ts
+tests/lint-fixtures/
+.husky/_/
+next-env.d.ts
+.planning/

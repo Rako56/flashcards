@@ -11,7 +11,6 @@ export default function GlobalErrorBoundary({
 }) {
   useEffect(() => {
     // P7 wires Sentry.captureException here.
-    // eslint-disable-next-line no-console
     console.error(error)
   }, [error])
 

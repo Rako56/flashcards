@@ -48,15 +48,15 @@ These are hard blocks. If a task asks you to add any of these, **stop and ask Ra
 
 ## Quality Gates (non-negotiable)
 
-| Gate | Rule |
-|------|------|
-| TypeScript | `strict: true` + 3 flags. ZERO `: any` or `as any`. ESLint blocks on `@typescript-eslint/no-explicit-any`. |
-| Lint | CI fails on any ESLint error. Pre-commit hook (Plan 1.2) runs lint + typecheck. |
-| Coverage | ≥50% global; ≥90% on `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/`. |
-| Observability | Sentry + pino from commit 1. Every catch in Route Handlers / Server Actions calls `Sentry.captureException`. |
-| Atomicity | All read-modify-write on DB goes through atomic Postgres functions (XP, due cards, simulado answers). No client-side RMW. |
-| RLS | Every table has RLS enabled with explicit policies. No "RLS off, we'll fix later". |
-| Multi-tenant | `getConcursoBySlug()` is the ONLY API to resolve a concurso. Hardcoded UUIDs in code are banned — ESLint custom rule enforces. |
+| Gate          | Rule                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| TypeScript    | `strict: true` + 3 flags. ZERO `: any` or `as any`. ESLint blocks on `@typescript-eslint/no-explicit-any`.                     |
+| Lint          | CI fails on any ESLint error. Pre-commit hook (Plan 1.2) runs lint + typecheck.                                                |
+| Coverage      | ≥50% global; ≥90% on `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/`.                                                    |
+| Observability | Sentry + pino from commit 1. Every catch in Route Handlers / Server Actions calls `Sentry.captureException`.                   |
+| Atomicity     | All read-modify-write on DB goes through atomic Postgres functions (XP, due cards, simulado answers). No client-side RMW.      |
+| RLS           | Every table has RLS enabled with explicit policies. No "RLS off, we'll fix later".                                             |
+| Multi-tenant  | `getConcursoBySlug()` is the ONLY API to resolve a concurso. Hardcoded UUIDs in code are banned — ESLint custom rule enforces. |
 
 ## Conventions
 
@@ -92,4 +92,4 @@ Legacy returned 200 on every error. **That's banned.**
 
 ---
 
-*Last updated: 2026-05-21 (reboot, Plan 1.1)*
+_Last updated: 2026-05-21 (reboot, Plan 1.1)_
