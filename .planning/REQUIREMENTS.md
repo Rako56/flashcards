@@ -13,7 +13,7 @@
 
 Quality gates não-negociáveis aplicados desde commit 1.
 
-- [ ] **FOUND-01**: Repositório Next.js 15.5 + App Router + TypeScript strict 100% scaffold inicial pronto, `pnpm` como gerenciador, Node 20.18.x pinado em `.nvmrc`
+- [x] **FOUND-01**: Repositório Next.js 15.5 + App Router + TypeScript strict 100% scaffold inicial pronto, `pnpm` como gerenciador, Node 20.18.x pinado em `.nvmrc` *(Plan 1.1 — 2026-05-21)*
 - [ ] **FOUND-02**: ESLint flat config bloqueia `any`, `: any`, `as any`, imports relativos profundos e `console.log`; `pnpm lint` falha no CI
 - [ ] **FOUND-03**: Prettier configurado; `pnpm format:check` falha no CI se houver drift
 - [ ] **FOUND-04**: Husky + lint-staged executa lint+typecheck pré-commit; pre-push roda `tsc --noEmit`
@@ -273,7 +273,7 @@ Cada v1 requirement mapeia para exatamente UMA fase. Phases sequenciais 1-10 (se
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1: Foundation | Pending |
+| FOUND-01 | Phase 1: Foundation | ✓ Done (Plan 1.1) |
 | FOUND-02 | Phase 1: Foundation | Pending |
 | FOUND-03 | Phase 1: Foundation | Pending |
 | FOUND-04 | Phase 1: Foundation | Pending |

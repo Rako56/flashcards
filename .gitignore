@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# environment
+.env*
+!.env.example
+
+# testing
+coverage/
+.playwright/
+playwright-report/
+test-results/
+
+# generated types (CI regenerates; locally optional)
+# (DO NOT gitignore — types/database.types.ts MUST be committed)
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# misc
+*.tsbuildinfo
+.eslintcache
+next-env.d.ts

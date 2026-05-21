@@ -1,0 +1,39 @@
+{
+  "name": "flashcards",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marketplace de preparações curadas para concursos públicos brasileiros — flashcards.com.br",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.18.0 <23"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-query": "^5.100.11",
+    "clsx": "^2.1.1",
+    "next": "15.5.18",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-hook-form": "^7.76.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^20.18.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "3.4.17",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "5.7.3",
+    "vitest": "3.2.4"
+  }
+}
