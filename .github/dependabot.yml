@@ -1,0 +1,73 @@
+# Dependabot config — Flashcards (Plan 1.5 — FOUND-07)
+#
+# Weekly Monday batch keeps the supply chain fresh without daily PR noise.
+# Grouping reduces N PRs into 1 logical update per ecosystem (next, test, supabase).
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # --- npm (pnpm-managed) dependencies ----------------------------------------
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore(deps)'
+      include: 'scope'
+    groups:
+      next-ecosystem:
+        patterns:
+          - 'next'
+          - '@next/*'
+          - 'eslint-config-next'
+          - '@next/eslint-plugin-next'
+      test-tooling:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@playwright/*'
+          - '@testing-library/*'
+          - 'msw'
+          - 'jsdom'
+      supabase:
+        patterns:
+          - '@supabase/*'
+          - 'supabase'
+      lint-format:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'prettier'
+          - 'prettier-*'
+      tailwind:
+        patterns:
+          - 'tailwindcss'
+          - 'tailwindcss-*'
+          - '@tailwindcss/*'
+          - 'autoprefixer'
+          - 'postcss'
+
+  # --- GitHub Actions used in .github/workflows/ -------------------------------
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+      - 'ci'
+    commit-message:
+      prefix: 'chore(ci)'
+      include: 'scope'

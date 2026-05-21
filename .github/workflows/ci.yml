@@ -1,0 +1,271 @@
+# Flashcards CI Pipeline (Plan 1.5 — FOUND-07)
+#
+# Triggers on: PR to `main` + push to `main`.
+# Gates: install (shared cache) → lint, format, typecheck, test (parallel) → build → e2e.
+# Aux jobs (auto-skip via guards until their owning plan lands):
+#   - types-fresh   (activates Plan 1.9 — `types/database.types.ts`)
+#   - supabase-lint (activates Plans 1.7/1.8 — `supabase/migrations/*.sql`)
+#   - e2e           (activates Plans 1.12/1.13 — `PLAYWRIGHT_BASE_URL` secret + Vercel preview)
+#
+# Branch protection on `main` (set manually per Plan 1.5 Task 4) enforces these as required
+# status checks. Direct push to `main` is rejected; merge requires PR + ≥1 reviewer +
+# CODEOWNERS approval + all required checks green. Admin-bypass is OFF (T-1.5-02).
+#
+# Source: RESEARCH.md §Pattern 4 (GitHub Actions CI Pipeline) + STACK.md §10.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same ref (saves CI minutes on rapid pushes).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege token: read source + write PR comments / status (T-1.5-06).
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PNPM_VERSION: 9.15.9
+
+jobs:
+  # --- Install: warm pnpm-store + node_modules cache for downstream jobs. -------
+  install:
+    name: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+  # --- Lint: ESLint flat config + no-mercy gates (no any, no UUIDs, no console). -
+  lint:
+    name: lint
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  # --- Format: Prettier check (separate job for clearer failure surface). ------
+  format:
+    name: format
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+
+  # --- Typecheck: tsc --noEmit with strict tsconfig. --------------------------
+  typecheck:
+    name: typecheck
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+
+  # --- Test: Vitest with coverage. Per-path 90% on lib/{srs,queue,asaas,access}. -
+  # Coverage report uploaded as artifact for debugging failed gates.
+  test:
+    name: test
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  # --- Types-fresh: regenerates types/database.types.ts from linked Supabase ---
+  # and fails on diff. SKIPPED until Plan 1.9 ships the canonical types file.
+  types-fresh:
+    name: types-fresh
+    needs: install
+    if: hashFiles('types/database.types.ts') != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm types:gen
+        env:
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Fail if types are stale
+        run: |
+          if ! git diff --exit-code types/database.types.ts; then
+            echo "::error::types/database.types.ts is stale. Run 'pnpm types:gen' and commit the result."
+            exit 1
+          fi
+
+  # --- Supabase-lint: lints supabase/migrations/*.sql against the linked project. -
+  # SKIPPED until Plans 1.7/1.8 ship the first migrations.
+  supabase-lint:
+    name: supabase-lint
+    needs: install
+    if: hashFiles('supabase/migrations/*.sql') != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db lint --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # --- Build: production Next.js bundle. Gated on lint/format/typecheck/test green. -
+  # NEXT_PUBLIC_* secrets are placeholder in P1.5 (real values from P1.6/P1.10);
+  # next 15.5 build tolerates empty values because env validation is lazy.
+  build:
+    name: build
+    needs: [lint, format, typecheck, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      # Cache Next.js incremental build artifacts across runs on the same lockfile.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+  # --- E2E gate: ensures e2e only runs once PLAYWRIGHT_BASE_URL secret is set. -
+  # We can't reference `secrets.*` directly in a job-level `if:` expression —
+  # GitHub doesn't expose secret presence to that scope. The workaround is a
+  # tiny preflight job that COPIES the secret into a step output (which IS
+  # readable downstream) so the e2e job can gate on `needs.e2e-gate.outputs.run`.
+  # Activates in Plan 1.12 when the secret is set to the Vercel preview pattern.
+  e2e-gate:
+    name: e2e-gate
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+        run: |
+          if [ -n "$PLAYWRIGHT_BASE_URL" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "PLAYWRIGHT_BASE_URL is set — e2e job will run."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "PLAYWRIGHT_BASE_URL is empty — e2e job skipped (Plan 1.12 will wire this)."
+          fi
+
+  # --- E2E: Playwright smoke tests against Vercel preview URL. ------------------
+  # SKIPPED until Plan 1.12 wires Vercel previews + Plan 1.13 ships the smoke spec.
+  e2e:
+    name: e2e
+    needs: e2e-gate
+    if: needs.e2e-gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Wait for Vercel preview
+        if: github.event_name == 'pull_request'
+        run: |
+          PREVIEW_URL="${{ secrets.PLAYWRIGHT_BASE_URL }}"
+          for i in {1..30}; do
+            if curl -fsS "$PREVIEW_URL/api/healthz" > /dev/null; then
+              echo "Preview live at $PREVIEW_URL"
+              break
+            fi
+            sleep 10
+          done
+      - run: pnpm test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

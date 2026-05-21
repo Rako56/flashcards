@@ -1,0 +1,38 @@
+# Code Owners — Flashcards (Plan 1.5 — FOUND-07)
+#
+# GitHub auto-requests reviews from these owners when a PR touches a matching
+# path. Branch protection on `main` (set per Plan 1.5 Task 4) enforces
+# "Require review from Code Owners" so these reviews are mandatory.
+#
+# Each line follows the format: `<glob>  <github-username-or-team>`
+# Later patterns override earlier ones. See:
+# https://docs.github.com/en/repositories/managing-your-repositories-settings-and-customization/customizing-your-repository/about-code-owners
+
+# --- Default: everything else falls back to the project owner. ------------------
+*                              @Rako56
+
+# --- Money / correctness paths (high-coverage protected; T-1.5-05 mitigation). -
+/lib/srs/                      @Rako56
+/lib/queue/                    @Rako56
+/lib/asaas/                    @Rako56
+/lib/access/                   @Rako56
+/lib/supabase/admin.ts         @Rako56
+
+# --- Database schema (every migration is reviewed before push). ---------------
+/supabase/migrations/          @Rako56
+
+# --- Server-side payment & health endpoints. ----------------------------------
+/app/api/asaas/                @Rako56
+/app/api/healthz/              @Rako56
+
+# --- Build / CI / tooling configuration (gates are sacred). -------------------
+/.github/workflows/            @Rako56
+/eslint.config.mjs             @Rako56
+/tsconfig.json                 @Rako56
+/vitest.config.ts              @Rako56
+/playwright.config.ts          @Rako56
+/next.config.ts                @Rako56
+
+# --- Project memory + planning artifacts. -------------------------------------
+/CLAUDE.md                     @Rako56
+/.planning/                    @Rako56
