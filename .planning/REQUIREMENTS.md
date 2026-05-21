@@ -18,7 +18,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [x] **FOUND-03**: Prettier configurado; `pnpm format:check` falha no CI se houver drift *(Plan 1.2 — 2026-05-21)*
 - [x] **FOUND-04**: Husky + lint-staged executa lint+typecheck pré-commit; pre-push roda `tsc --noEmit` *(Plan 1.2 — 2026-05-21)*
 - [x] **FOUND-05**: Vitest configurado com coverage gates: ≥50% global, ≥90% em `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/` *(Plan 1.3 — 2026-05-21)*
-- [ ] **FOUND-06**: Playwright instalado e configurado pra E2E em CI (Vercel preview deploy URL)
+- [x] **FOUND-06**: Playwright instalado e configurado pra E2E em CI (Vercel preview deploy URL) *(Plan 1.4 — 2026-05-21)*
 - [ ] **FOUND-07**: GitHub Actions: lint → typecheck → test → build → Supabase migrations lint, com proteção de branch `main`
 - [ ] **FOUND-08**: Sentry SDK Next.js 15 instalado com sourcemaps via Vercel integration; tags `correlationId`, `userId`, `concursoSlug`
 - [ ] **FOUND-09**: Pino structured logging em todas Route Handlers e Server Actions com `correlationId` propagado via header
@@ -277,8 +277,8 @@ Cada v1 requirement mapeia para exatamente UMA fase. Phases sequenciais 1-10 (se
 | FOUND-02 | Phase 1: Foundation | ✓ Done (Plan 1.2) |
 | FOUND-03 | Phase 1: Foundation | ✓ Done (Plan 1.2) |
 | FOUND-04 | Phase 1: Foundation | ✓ Done (Plan 1.2) |
-| FOUND-05 | Phase 1: Foundation | Pending |
-| FOUND-06 | Phase 1: Foundation | Pending |
+| FOUND-05 | Phase 1: Foundation | ✓ Done (Plan 1.3) |
+| FOUND-06 | Phase 1: Foundation | ✓ Done (Plan 1.4) |
 | FOUND-07 | Phase 1: Foundation | Pending |
 | FOUND-08 | Phase 1: Foundation | Pending |
 | FOUND-09 | Phase 1: Foundation | Pending |

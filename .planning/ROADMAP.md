@@ -66,7 +66,7 @@ Reboot completo do legado Sparkle Study Scape em novo repositório Next.js 15.5 
   - [x] 01-01-PLAN.md — Next.js 15.5 scaffold + TS strict + pnpm + route groups + env.ts *(2026-05-21)*
   - [x] 01-02-PLAN.md — ESLint + Prettier + Husky + lint-staged + custom UUID-ban rule *(2026-05-21)*
   - [x] 01-03-PLAN.md — Vitest + MSW + coverage gates + placeholder modules *(2026-05-21)*
-  - [ ] 01-04-PLAN.md — Playwright + gate-break coverage probe
+  - [x] 01-04-PLAN.md — Playwright + gate-break coverage probe *(2026-05-21)*
   - [ ] 01-05-PLAN.md — GitHub Actions CI + branch protection + CODEOWNERS + Dependabot
   - [ ] 01-06-PLAN.md — Supabase Pro provisioning + client factories + 'server-only' guard
   - [ ] 01-07-PLAN.md — Migrations 0001-0005 + RLS + intermediate `supabase db push`
