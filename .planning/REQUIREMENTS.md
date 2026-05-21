@@ -17,7 +17,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [x] **FOUND-02**: ESLint flat config bloqueia `any`, `: any`, `as any`, imports relativos profundos e `console.log`; `pnpm lint` falha no CI *(Plan 1.2 — 2026-05-21)*
 - [x] **FOUND-03**: Prettier configurado; `pnpm format:check` falha no CI se houver drift *(Plan 1.2 — 2026-05-21)*
 - [x] **FOUND-04**: Husky + lint-staged executa lint+typecheck pré-commit; pre-push roda `tsc --noEmit` *(Plan 1.2 — 2026-05-21)*
-- [ ] **FOUND-05**: Vitest configurado com coverage gates: ≥50% global, ≥90% em `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/`
+- [x] **FOUND-05**: Vitest configurado com coverage gates: ≥50% global, ≥90% em `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/` *(Plan 1.3 — 2026-05-21)*
 - [ ] **FOUND-06**: Playwright instalado e configurado pra E2E em CI (Vercel preview deploy URL)
 - [ ] **FOUND-07**: GitHub Actions: lint → typecheck → test → build → Supabase migrations lint, com proteção de branch `main`
 - [ ] **FOUND-08**: Sentry SDK Next.js 15 instalado com sourcemaps via Vercel integration; tags `correlationId`, `userId`, `concursoSlug`
