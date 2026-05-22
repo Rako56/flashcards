@@ -19,7 +19,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [x] **FOUND-04**: Husky + lint-staged executa lint+typecheck pré-commit; pre-push roda `tsc --noEmit` *(Plan 1.2 — 2026-05-21)*
 - [x] **FOUND-05**: Vitest configurado com coverage gates: ≥50% global, ≥90% em `lib/srs/`, `lib/queue/`, `lib/asaas/`, `lib/access/` *(Plan 1.3 — 2026-05-21)*
 - [x] **FOUND-06**: Playwright instalado e configurado pra E2E em CI (Vercel preview deploy URL) *(Plan 1.4 — 2026-05-21)*
-- [ ] **FOUND-07**: GitHub Actions: lint → typecheck → test → build → Supabase migrations lint, com proteção de branch `main`
+- [x] **FOUND-07**: GitHub Actions: lint → typecheck → test → build → Supabase migrations lint, com proteção de branch `main` *(Plan 1.5 — 2026-05-22; repo público desde então, branch protection ativa)*
 - [ ] **FOUND-08**: Sentry SDK Next.js 15 instalado com sourcemaps via Vercel integration; tags `correlationId`, `userId`, `concursoSlug`
 - [ ] **FOUND-09**: Pino structured logging em todas Route Handlers e Server Actions com `correlationId` propagado via header
 - [ ] **FOUND-10**: Supabase Pro project (sa-east-1) criado, Supabase branching habilitada por PR
