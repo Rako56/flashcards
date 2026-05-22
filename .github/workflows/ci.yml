@@ -131,7 +131,7 @@ jobs:
   types-fresh:
     name: types-fresh
     needs: install
-    if: hashFiles('types/database.types.ts') != ''
+    if: ${{ hashFiles('types/database.types.ts') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -162,7 +162,7 @@ jobs:
   supabase-lint:
     name: supabase-lint
     needs: install
-    if: hashFiles('supabase/migrations/*.sql') != ''
+    if: ${{ hashFiles('supabase/migrations/*.sql') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
