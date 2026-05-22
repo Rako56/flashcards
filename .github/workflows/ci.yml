@@ -131,7 +131,10 @@ jobs:
   types-fresh:
     name: types-fresh
     needs: install
-    if: ${{ hashFiles('types/database.types.ts') != '' }}
+    # Plan 1.9 enables this gate by changing `if: false` to `if: true` when
+    # `types/database.types.ts` is committed. hashFiles() can't be used at
+    # job-level if: because it's evaluated before checkout (no files yet).
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -162,7 +165,10 @@ jobs:
   supabase-lint:
     name: supabase-lint
     needs: install
-    if: ${{ hashFiles('supabase/migrations/*.sql') != '' }}
+    # Plans 1.7/1.8 enable this gate by changing `if: false` to `if: true` when
+    # `supabase/migrations/*.sql` files are committed. hashFiles() can't be
+    # used at job-level if: because it's evaluated before checkout.
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
