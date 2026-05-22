@@ -10,24 +10,24 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 1 of 10 (Foundation)
-Plan: 5 of 13 (Plan 1.5 HALTED at Task 3b push — PAT lacks `workflow` scope)
-Status: Waiting on Rafael to (A) regenerate PAT with `workflow` scope OR install `gh` CLI, then push commit 83dce3a, then (B) add 6 placeholder secrets, then (C) configure main branch protection. Plan 1.5 SUMMARY documents exact next steps.
-Last activity: 2026-05-21 — Plan 1.5 Tasks 1-2-3a executed (CI workflow ci.yml with 10 jobs incl. e2e-gate workaround for `secrets.*` in job-level `if:`; CODEOWNERS with @Rako56 on lib/{srs,queue,asaas,access,supabase/admin.ts} + supabase/migrations + app/api/{asaas,healthz} + workflows; PR template with anti-features check; dependabot.yml with npm + github-actions weekly Monday America/Sao_Paulo, 5 groups). All 5 local gates green (lint, format:check, typecheck, test:coverage 17/17 100% protected, build). Commit 83dce3a created locally. `git push origin main` REFUSED by GitHub: `! [remote rejected] main -> main (refusing to allow a Personal Access Token to create or update workflow .github/workflows/ci.yml without 'workflow' scope)`. Auth gate, not code issue. SUMMARY 01-05-SUMMARY.md written with full Rafael resolution path (3 options for unblocking PAT + secrets list + branch protection settings + workflow permissions). FOUND-07 NOT YET checked off.
+Plan: 5 of 13 (Plan 1.5 ✓ COMPLETE — CI verde + branch protection ativa em main)
+Status: Ready to execute Plan 1.6 (Supabase Pro provisioning — requires Rafael dashboard work)
+Last activity: 2026-05-22 — Plan 1.5 closed after 5 fix commits to green: 83dce3a (initial), ae14f19 (hashFiles ${{ }} attempt), 5923691 (hashFiles → if: false), dc7215d (Node 22.12 for Vite 7 ESM). Repo Rako56/flashcards flipped to PUBLIC (Rafael decision 2026-05-22 to enable branch protection in GitHub Free). CI run #12 GREEN in 2m 13s. Branch protection rule on `main` with 6 required status checks (install/lint/format/typecheck/test/build), 1 PR approval, CODEOWNERS review required, linear history, conversation resolution required, admin bypass disabled. Task 5 (probe PR) skipped by Rafael — sufficient evidence already (pre-commit hook proven in 1.2 + CI gate proven in run #12). FOUND-07 → ✓ Done.
 
-Progress: [███░░░░░░░] 31% (Phase 1: 4 of 13 plans done; Plan 1.5 halted-at-checkpoint not counted)
+Progress: [████░░░░░░] 38% (Phase 1: 5 of 13 plans done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (Plan 1.5 halted-at-checkpoint)
-- Average duration: ~24 min/plan
-- Total execution time: ~107 min (Plans 1.1-1.4 + Plan 1.5 Tasks 1-3a ≈ 12 min)
+- Total plans completed: 5
+- Average duration: ~25 min/plan
+- Total execution time: ~140 min (Plans 1.1-1.5 incl. ~30 min Plan 1.5 unblock journey)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 (Foundation) | 4/13 (+ 1 partial) | ~107 min | ~24 min |
+| 1 (Foundation) | 5/13 | ~140 min | ~28 min |
 
 **Recent Trend:**
 - Last 5 plans: Plan 1.1 (~25 min, 26 files, 0 critical deviations), Plan 1.2 (~35 min, 12 files created + 8 modified, 6 auto-resolved Rule 1/3 deviations), Plan 1.3 (~30 min, 11 files, 0 deviations), Plan 1.4 (~5 min, 2+3 files, 1 Rule 1 deviation), Plan 1.5 Tasks 1-3a (~12 min, 4 files, 3 auto-resolved Rule 1/2 deviations: e2e-gate job for secrets-in-if workaround, lint+format job split, .next/cache caching; HALTED at push — PAT lacks workflow scope, awaiting Rafael unblock)

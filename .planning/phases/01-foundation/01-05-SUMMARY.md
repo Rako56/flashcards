@@ -1,14 +1,20 @@
 ---
 phase: 1
 plan: 05
-title: GitHub Actions CI + CODEOWNERS + PR template + Dependabot
-status: halted-at-checkpoint
-completed_at: pending-rafael-auth-gate
-commit_local: 83dce3a
-commit_pushed: blocked-pat-missing-workflow-scope
+title: GitHub Actions CI + CODEOWNERS + PR template + Dependabot + branch protection
+status: complete
+completed: 2026-05-22
+commits:
+  - 83dce3a (CI workflow + CODEOWNERS + PR template + Dependabot — local)
+  - 73b770a (SUMMARY + STATE halted-at-checkpoint)
+  - ae14f19 (fix: hashFiles ${{ }} wrap attempt)
+  - 5923691 (fix: hashFiles → if: false placeholder)
+  - dc7215d (fix: bump Node 20.18 → 22.12 for Vite 7 ESM)
+all_pushed_to: Rako56/flashcards@main
+ci_first_green_run: "#12 (commit dc7215d) — 2m 13s"
 requirements: [FOUND-07]
-tasks_done: [1, 2, 3-local]
-tasks_pending: [3-push, 4, 5]
+tasks_done: [1, 2, 3, 4]
+tasks_skipped: [5]  # probe — skipped by Rafael decision 2026-05-22 (CI verde proves gate works; skip the PR probe ceremony)
 provides:
   - "CI workflow (.github/workflows/ci.yml) — 10 jobs: install, lint, format, typecheck, test, build (all gating) + types-fresh, supabase-lint, e2e-gate, e2e (auto-skip until owning plans land)"
   - "CODEOWNERS — @Rako56 required reviewer on money/correctness paths (lib/srs, lib/queue, lib/asaas, lib/access, supabase/migrations, app/api/{asaas,healthz}, workflows, planning docs)"
@@ -35,9 +41,68 @@ metrics:
 
 # Phase 1 Plan 1.5: GitHub Actions CI + Repo Hardening Summary
 
-`HALTED at Task 3 final push (auth gate) — local commit 83dce3a preserved ahead of origin/main, push refused by GitHub for missing PAT workflow scope.`
+✅ **COMPLETE** — all 4 active tasks shipped, CI green, branch protection active on `main`. FOUND-07 satisfied.
 
-GitHub Actions CI pipeline + CODEOWNERS + PR template + Dependabot all written and **committed locally** with all 5 local gates green (lint, format:check, typecheck, test:coverage 17/17 100% protected, build). The final `git push origin main` was REFUSED by GitHub because the local PAT used by git's credential manager does NOT carry the `workflow` scope required to create/update files under `.github/workflows/`. This is a pure auth gate — no code or config issue.
+## What got delivered
+
+GitHub Actions CI pipeline + CODEOWNERS + PR template + Dependabot + branch protection rule on `main`. Repo `Rako56/flashcards` is now PUBLIC (Rafael decision 2026-05-22 to unlock branch protection in Free tier).
+
+## Journey (5 commits to green)
+
+1. **83dce3a** — initial CI workflow + repo hardening (local commit)
+2. **Auth gate** — push refused: PAT missing `workflow` scope. Rafael rotated PAT permissions (Contents R/W, Workflows R/W, Pull requests R/W). Push went through.
+3. **ae14f19** — first fix attempt for `hashFiles()` parse error: wrap in `${{ }}`. **STILL FAILED** because `hashFiles()` at job-level `if:` is evaluated BEFORE checkout — runner has no files yet.
+4. **5923691** — replaced `if: hashFiles(...)` with `if: false` placeholder + comment naming the plan that flips it true. YAML now parses cleanly, jobs start running.
+5. **dc7215d** — Node bump 20.18 → 22.12. Vite 7 (transitive of Vitest 3.2.4) requires Node ≥ 20.19 or ≥ 22.12. Local Windows runs Node 24, CI was pinned to .nvmrc 20.18 — failed `ERR_REQUIRE_ESM` loading vitest.config.ts. Bumping `.nvmrc` + `engines.node` + `@types/node` to 22.12 LTS line resolved it.
+
+CI run **#12** (commit dc7215d) finished GREEN in 2m 13s with:
+- `install`, `lint`, `format`, `typecheck`, `test`, `build` → ✓ success
+- `types-fresh`, `supabase-lint`, `e2e` → skipped (`if: false` or `needs.e2e-gate.outputs.run == 'false'`)
+- `e2e-gate` → success (reports `run=false`)
+
+## Visibility flip — public → privatable later
+
+Rafael accepted public repo to unlock branch protection (GitHub Free doesn't enforce protection on private repos in personal accounts). When the product matures toward soft launch (Phase 10), Rafael can flip back to private (1 click, no data loss) and either accept the loss of branch protection or upgrade to GitHub Pro ($4/mo) to keep it.
+
+Mitigating factors that make public-now safe:
+- `.env.local` gitignored, zero secrets in code
+- Asaas/Supabase tokens live in GitHub Secrets, never in repo
+- Reboot is clean — no legacy history
+- Public Actions minutes are unlimited (saves money)
+
+## Branch protection rule on `main` (verified by Rafael screenshot)
+
+- ✅ Require a pull request before merging
+  - Required approvals: 1
+  - Dismiss stale pull request approvals when new commits are pushed
+  - Require review from Code Owners (CODEOWNERS shipped this plan)
+- ✅ Require status checks to pass before merging
+  - Require branches to be up to date before merging
+  - Required checks: `install`, `lint`, `format`, `typecheck`, `test`, `build` (6 active gates)
+- ✅ Require conversation resolution before merging
+- ✅ Require linear history
+- ✅ Do not allow bypassing the above settings (admin bypass disabled)
+- ⛔ Allow force pushes (off)
+- ⛔ Allow deletions (off)
+
+## Lessons learned (worth capturing for future plans)
+
+1. **`hashFiles()` doesn't work at job-level `if:`** — needs checkout first. Use `if: false` placeholder or pre-job that runs checkout + sets outputs.
+2. **Vite 7 requires Node ≥ 20.19 or ≥ 22.12** — pin `.nvmrc` AND `engines.node` accordingly. Local Windows Node 24 hides this; only CI catches it.
+3. **PAT fine-grained needs Workflows: R/W** — without it, push of any `.github/workflows/*.yml` is refused. Coarse `repo` scope alone isn't enough.
+4. **`secrets.*` not exposed to job-level `if:`** — use a 1-step gate job that copies the secret value into a step output. The `e2e-gate` job pattern in `ci.yml` is the canonical workaround.
+5. **GitHub Free won't enforce branch protection on private repos** — Pro plan ($4/mo) needed, OR repo must be public, OR accept the lack of enforcement.
+6. **NEVER paste PAT in chat** — happened once during this plan. Token immediately rotated and re-scoped. Future credential exchange via Windows Credential Manager prompt (popup) or `gh auth login` OAuth flow.
+
+## Task 5 (probe) — skipped
+
+Rafael decision 2026-05-22: skip the gate-break probe (open PR with `: any` → verify CI blocks merge). Evidence we already have is sufficient:
+
+- Local pre-commit hook proven (Plan 1.2 Task 6 — `: any` commit refused)
+- CI lint job verified green on Node 22 Linux (run #12)
+- Branch protection now requires `lint` status check on PR (enforced from Plan 1.5 onwards)
+
+When a real PR opens during execution of Plans 1.6+, any `: any` slip will fire all three gates naturally. The synthetic probe was an optional confidence check.
 
 ## Goal
 
