@@ -48,6 +48,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Flashcards
             </Link>
             <Link
+              href="/admin/questoes"
+              className="text-foreground/70 transition-colors hover:text-foreground"
+            >
+              Questões
+            </Link>
+            <Link
               href="/admin/users"
               className="text-foreground/70 transition-colors hover:text-foreground"
             >
