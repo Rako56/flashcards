@@ -23,7 +23,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [ ] **FOUND-08**: Sentry SDK Next.js 15 instalado com sourcemaps via Vercel integration; tags `correlationId`, `userId`, `concursoSlug`
 - [ ] **FOUND-09**: Pino structured logging em todas Route Handlers e Server Actions com `correlationId` propagado via header
 - [x] **FOUND-10**: Supabase Pro project (existing `zjyogswbgcauwqisvuyq` em `us-west-2` — region trade-off decisão 2026-05-26, latência aceitável), Supabase Branching habilitada via GitHub Integration *(Plan 1.6 — 2026-05-26; reuso de projeto existente vs greenfield — ver STATE.md Decisions § "Supabase project reuse")*
-- [ ] **FOUND-11**: Schema base migrado em 8 migrations (admin_concursos, admin_*, users/profiles, user_concurso_access, srs/progress/reviews, simulados, purchases/webhook_events, audit_log) com RLS em toda tabela e Postgres functions atômicas
+- [~] **FOUND-11**: Schema base migrado em 8 migrations (admin_concursos, admin_*, users/profiles, user_concurso_access, srs/progress/reviews, simulados, purchases/webhook_events, audit_log) com RLS em toda tabela e Postgres functions atômicas *(PARCIAL — Plan 1.7 audit 2026-05-26: schema já existe em produção com 236 migrations + RLS em 33/33 tabelas; F-001 hardening fix aplicado; F-002 a F-008 deferred — ver `.planning/phases/01-foundation/01-07-AUDIT.md`)*
 - [ ] **FOUND-12**: Pipeline de geração de tipos Supabase (`pnpm types:gen`) roda no CI; build falha se `database.types.ts` estiver desatualizado vs migrations
 
 ### Multi-Tenant Architecture (MULTI)
@@ -283,7 +283,7 @@ Cada v1 requirement mapeia para exatamente UMA fase. Phases sequenciais 1-10 (se
 | FOUND-08 | Phase 1: Foundation | Pending |
 | FOUND-09 | Phase 1: Foundation | Pending |
 | FOUND-10 | Phase 1: Foundation | ✓ Done (Plan 1.6) |
-| FOUND-11 | Phase 1: Foundation | Pending |
+| FOUND-11 | Phase 1: Foundation | ~ Partial (Plan 1.7 audit + F-001) |
 | FOUND-12 | Phase 1: Foundation | Pending |
 | MULTI-01 | Phase 2: Multi-Tenant Skeleton | Pending |
 | MULTI-02 | Phase 2: Multi-Tenant Skeleton | Pending |
