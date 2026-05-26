@@ -51,5 +51,8 @@ export async function listSimuladosForUser(
     throw new Error(`listSimuladosForUser failed: ${error.message}`)
   }
 
-  return data
+  // data is typed as SimuladoSummary[] but Supabase can hand back null
+  // when the row set is empty; coerce defensively to keep the contract.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return data ?? []
 }
