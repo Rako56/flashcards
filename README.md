@@ -6,20 +6,20 @@ Aluno paga R$ 297/ano por uma preparação e recebe flashcards prontos feitos à
 
 ## Status
 
-| Camada                                                                       | Estado                                      |
-| ---------------------------------------------------------------------------- | ------------------------------------------- |
-| Foundation (CI, observability, security)                                     | ✅ 100%                                     |
-| Multi-tenant subdomain routing                                               | ✅ 95%                                      |
-| Auth (signup, login, OAuth Google, password recovery, LGPD deletion)         | ✅ 100%                                     |
-| Pagamento (Asaas checkout + webhook + access grant)                          | ✅ 95%                                      |
-| SRS (FSRS-5 + streak/XP + last-card bonus + leaderboard)                     | ✅ 100%                                     |
-| Caderno de erros (listagem + filtros + revisar todos + dominei)              | ✅ 95%                                      |
-| Visual identity                                                              | 10% (aguarda definição de paleta/typo/logo) |
-| Admin (read-only + status toggles)                                           | 80%                                         |
-| Simulado (listing + create + detail + run preview)                           | 75% (runner full pendente)                  |
-| SEO (robots, sitemap, OG dinâmico, JSON-LD, breadcrumbs, analytics scaffold) | ✅ 100%                                     |
+| Camada                                                                        | Estado  |
+| ----------------------------------------------------------------------------- | ------- |
+| Foundation (CI, observability, security)                                      | ✅ 100% |
+| Multi-tenant subdomain routing                                                | ✅ 95%  |
+| Auth (signup, login, OAuth Google, password recovery, LGPD deletion)          | ✅ 100% |
+| Pagamento (Asaas checkout + webhook + access grant)                           | ✅ 95%  |
+| SRS (FSRS-5 + streak/XP + last-card bonus + leaderboard)                      | ✅ 100% |
+| Caderno de erros (listagem + filtros + revisar todos + dominei)               | ✅ 95%  |
+| Visual identity (wordmark + favicon + brand tokens; logo final pendente)      | 50%     |
+| Admin (read-only + status toggles + /admin/webhooks viewer)                   | 90%     |
+| Simulado (listing + create + detail + runner interativo + gabarito comentado) | ✅ 98%  |
+| SEO (robots, sitemap, OG dinâmico, JSON-LD, breadcrumbs, noindex, analytics)  | ✅ 100% |
 
-90+ PRs entregues. **Produto shippable.** Falta apenas (a) decisões de design e (b) configuração operacional (env vars, DNS, Asaas API key) pra ligar a venda.
+100+ PRs entregues. **Produto shippable.** Falta apenas (a) logo final do designer e (b) configuração operacional (env vars, DNS, Asaas API key) pra ligar a venda.
 
 ## Quickstart
 
@@ -52,7 +52,7 @@ Requer Node 20.18+ (ver `.nvmrc`) e pnpm 9.15.x.
 
 **Autenticadas:** `/study` (+ `?mode=mistakes`), `/erros`, `/simulado` (+ `/novo`, `/[id]`, `/[id]/run`), `/checkout`, `/sucesso`, `/onboarding`, `/settings` (+ `/account`, `/profile`, `/password`, `/study`)
 
-**Admin (role gated):** `/admin`, `/admin/concursos`, `/admin/flashcards`, `/admin/questoes`, `/admin/users`
+**Admin (role gated):** `/admin`, `/admin/concursos`, `/admin/flashcards`, `/admin/questoes`, `/admin/users`, `/admin/webhooks`
 
 **API:** `/api/healthz`, `/api/webhooks/asaas`
 
