@@ -64,3 +64,59 @@ export async function markMistakeReviewedAction(input: {
   revalidatePath('/erros')
   return { ok: true }
 }
+
+const BatchInputSchema = z.object({
+  cardIds: z.array(z.string().uuid('each cardId must be a UUID')).min(1).max(200),
+})
+
+export type MarkAllMasteredResult = { ok: true; count: number } | { ok: false; error: string }
+
+/**
+ * Batch version of `markMistakeReviewedAction` — inserts one
+ * `srs_reviews` row per card so the entire visible mistake list
+ * clears in a single round-trip. Cap at 200 to bound the payload.
+ */
+export async function markAllMistakesReviewedAction(input: {
+  cardIds: string[]
+}): Promise<MarkAllMasteredResult> {
+  const correlationId = crypto.randomUUID()
+  const log = childLogger({
+    correlationId,
+    action: 'markAllMistakesReviewed',
+    count: input.cardIds.length,
+  })
+
+  const parsed = BatchInputSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, error: 'Entrada inválida.' }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { ok: false, error: 'Sessão expirou.' }
+  }
+
+  // Build the insert payload — one row per card, all rated 'good'.
+  const rows = parsed.data.cardIds.map((cardId) => ({
+    user_id: user.id,
+    flashcard_id: cardId,
+    rating: 'good' as const,
+    card_source: 'admin' as const,
+  }))
+
+  const { error: insertError } = await supabase.from('srs_reviews').insert(rows)
+
+  if (insertError) {
+    captureWithCorrelation(insertError, correlationId, { stage: 'srs_reviews.batch_insert' })
+    log.error({ err: insertError.message }, 'batch mark-mastered insert failed')
+    return { ok: false, error: 'Não foi possível marcar os erros como dominados.' }
+  }
+
+  log.info({ count: rows.length }, 'batch mistake mark-reviewed completed')
+  revalidatePath('/erros')
+  return { ok: true, count: rows.length }
+}

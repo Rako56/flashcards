@@ -11,6 +11,8 @@ import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { getSimuladoById } from '@/lib/simulados/get-by-id'
 import { getSimuladoQuestions } from '@/lib/simulados/get-questions'
 
+import { cloneSimuladoAction } from './actions'
+
 export const dynamic = 'force-dynamic'
 
 interface BreakdownEntry {
@@ -143,6 +145,26 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
                 {simulado.status === 'in_progress' ? 'Continuar' : 'Iniciar simulado'}
               </Link>
             </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {completed ? (
+        <section className="rounded-lg border border-brand-primary/30 bg-brand-primary/5 p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-medium">Quer tentar de novo?</h2>
+              <p className="mt-1 text-xs text-foreground/60">
+                Cria um simulado novo com as mesmas questões — o original fica intacto pra
+                comparação.
+              </p>
+            </div>
+            <form action={cloneSimuladoAction}>
+              <input type="hidden" name="simulado_id" value={simulado.id} />
+              <Button type="submit" variant="outline">
+                Refazer simulado
+              </Button>
+            </form>
           </div>
         </section>
       ) : null}
