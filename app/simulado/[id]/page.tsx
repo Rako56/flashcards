@@ -9,8 +9,15 @@ import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { getSimuladoById } from '@/lib/simulados/get-by-id'
+import { getSimuladoQuestions } from '@/lib/simulados/get-questions'
 
 export const dynamic = 'force-dynamic'
+
+interface BreakdownEntry {
+  answer: string
+  correct: boolean
+  gabarito: string | null
+}
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Pendente',
@@ -48,6 +55,14 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
   const correct = simulado.total_correct ?? 0
   const total = simulado.total_questions
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
+
+  // For completed simulados, load the question content so we can render
+  // a rich breakdown (enunciado + gabarito + user answer side by side).
+  // Pending/in_progress simulados skip this query — runner page handles
+  // the active session.
+  const breakdownByQid = parseBreakdown(simulado.results_json)
+  const completed = simulado.status === 'completed'
+  const questions = completed ? await getSimuladoQuestions(simulado.question_ids) : []
 
   const created = formatDate(simulado.created_at)
   const finished = simulado.finished_at ? formatDate(simulado.finished_at) : null
@@ -132,12 +147,30 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
         </section>
       ) : null}
 
-      {simulado.status === 'completed' && simulado.results_json ? (
+      {completed && questions.length > 0 ? (
         <section className="rounded-lg border border-border bg-card p-5">
-          <h2 className="text-sm font-medium">Resultado bruto</h2>
-          <pre className="mt-3 overflow-x-auto rounded bg-foreground/5 p-3 text-xs">
-            {JSON.stringify(simulado.results_json, null, 2)}
-          </pre>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-medium">Gabarito comentado</h2>
+            <p className="text-xs text-foreground/60">
+              {correct} de {total} acertos ({pct}%)
+            </p>
+          </div>
+          <ol className="mt-4 flex flex-col gap-3">
+            {questions.map((q, idx) => {
+              const entry = breakdownByQid.get(q.id)
+              return (
+                <BreakdownItem
+                  key={q.id}
+                  index={idx}
+                  enunciado={q.enunciado}
+                  gabarito={q.gabarito}
+                  explicacao={q.explicacao}
+                  entry={entry}
+                  anulada={q.anulada}
+                />
+              )
+            })}
+          </ol>
         </section>
       ) : null}
     </main>
@@ -174,4 +207,97 @@ function formatDate(iso: string): string {
   } catch {
     return iso
   }
+}
+
+function BreakdownItem({
+  index,
+  enunciado,
+  gabarito,
+  explicacao,
+  entry,
+  anulada,
+}: {
+  index: number
+  enunciado: string
+  gabarito: string | null
+  explicacao: string | null
+  entry: BreakdownEntry | undefined
+  anulada: boolean
+}) {
+  // 4 states: anulada, correct, wrong, skipped.
+  let tone: 'success' | 'fail' | 'skip' | 'anulada' = 'skip'
+  let label = 'Em branco'
+  if (anulada) {
+    tone = 'anulada'
+    label = 'Anulada'
+  } else if (!entry) {
+    tone = 'skip'
+    label = 'Em branco'
+  } else if (entry.correct) {
+    tone = 'success'
+    label = 'Acerto'
+  } else {
+    tone = 'fail'
+    label = 'Erro'
+  }
+
+  const toneClass: Record<typeof tone, string> = {
+    success: 'border-emerald-500/40 bg-emerald-500/5',
+    fail: 'border-destructive/40 bg-destructive/5',
+    skip: 'border-border bg-card',
+    anulada: 'border-brand-primary/40 bg-brand-primary/5',
+  }
+  const badgeClass: Record<typeof tone, string> = {
+    success: 'bg-emerald-500/15 text-emerald-600',
+    fail: 'bg-destructive/15 text-destructive',
+    skip: 'bg-foreground/10 text-foreground/60',
+    anulada: 'bg-brand-primary/15 text-brand-primary',
+  }
+
+  return (
+    <li className={`rounded-md border p-4 ${toneClass[tone]}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs uppercase tracking-wider text-foreground/50">
+          Questão {index + 1}
+        </span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass[tone]}`}>
+          {label}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-foreground/85">{enunciado}</p>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+        <dt className="text-foreground/50">Sua resposta</dt>
+        <dd className="font-mono text-foreground/90">{entry?.answer ?? '—'}</dd>
+        <dt className="text-foreground/50">Gabarito</dt>
+        <dd className="font-mono text-foreground/90">{gabarito ?? '—'}</dd>
+      </dl>
+      {explicacao ? (
+        <details className="group mt-3">
+          <summary className="cursor-pointer text-xs text-foreground/60 hover:text-foreground">
+            Ver explicação
+          </summary>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/80">{explicacao}</p>
+        </details>
+      ) : null}
+    </li>
+  )
+}
+
+function parseBreakdown(raw: unknown): Map<string, BreakdownEntry> {
+  const map = new Map<string, BreakdownEntry>()
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return map
+  const rawObj = raw as Record<string, unknown>
+  const breakdown = rawObj['breakdown']
+  if (!breakdown || typeof breakdown !== 'object' || Array.isArray(breakdown)) return map
+  for (const [qid, value] of Object.entries(breakdown)) {
+    if (!value || typeof value !== 'object') continue
+    const v = value as Record<string, unknown>
+    if (typeof v['answer'] !== 'string' || typeof v['correct'] !== 'boolean') continue
+    map.set(qid, {
+      answer: v['answer'],
+      correct: v['correct'],
+      gabarito: typeof v['gabarito'] === 'string' ? v['gabarito'] : null,
+    })
+  }
+  return map
 }
