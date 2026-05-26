@@ -1,25 +1,32 @@
 import { redirect } from 'next/navigation'
 
-import { Button } from '@/components/ui/button'
-import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
-import { getCurrentUser } from '@/lib/access/get-current-user'
+import { CheckoutButton } from './checkout-button'
 
 export const metadata = {
   title: 'Checkout — Flashcards',
 }
 
+export const dynamic = 'force-dynamic'
+
 /**
- * Checkout placeholder for Phase 4.1.
+ * Checkout page — initiates Asaas charge creation on button click.
  *
- * Phase 4.2 will:
- *  - Call Asaas API to create Customer (if not yet) + Payment
- *  - Build externalReference = `${user.id}:${concurso.slug}:${plan}`
- *  - Redirect user to Asaas checkout invoiceUrl (PIX/boleto/cartão)
- *  - On return, /sucesso page polls user_concurso_access (the legacy
- *    bug class — see bugs-from-vite-version.md #9)
+ * The actual server call lives in `actions.ts` (startCheckoutAction).
+ * When ASAAS_API_KEY is present, clicking the button redirects to
+ * Asaas hosted checkout (PIX + boleto + cartão); when missing, the
+ * button stays disabled with a friendly "em breve" message.
  *
- * For now this is just a confirmation card with a "next step" message.
+ * Server-side env check decides whether the button is enabled at
+ * render time so the user gets immediate feedback without an extra
+ * click + error round-trip.
  */
+import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
+import { getCurrentUser } from '@/lib/access/get-current-user'
+
+function asaasConfigured(): boolean {
+  return Boolean(process.env['ASAAS_API_KEY'] && process.env['ASAAS_API_BASE'])
+}
+
 export default async function CheckoutPage() {
   const concurso = await getConcursoFromHeaders()
   const user = await getCurrentUser()
@@ -31,6 +38,8 @@ export default async function CheckoutPage() {
   if (!concurso) {
     redirect('/')
   }
+
+  const checkoutEnabled = asaasConfigured()
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
@@ -56,14 +65,7 @@ export default async function CheckoutPage() {
           </ul>
         </div>
 
-        <Button className="mt-8 w-full" size="lg" disabled>
-          Pagar com PIX · em breve
-        </Button>
-
-        <p className="mt-3 text-center text-xs text-foreground/60">
-          Phase 4.2: integração Asaas (PIX + boleto + cartão) chega em PR separado quando a chave de
-          API sandbox for configurada.
-        </p>
+        <CheckoutButton enabled={checkoutEnabled} />
 
         <p className="mt-6 border-t border-border pt-4 text-center text-xs text-foreground/60">
           Logado como <span className="font-medium">{user.email}</span>
