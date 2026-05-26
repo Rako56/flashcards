@@ -147,7 +147,14 @@ jobs:
         with:
           version: latest
       - run: pnpm install --frozen-lockfile
-      - run: pnpm types:gen
+      # GH Actions runners are dual-stack but the Supabase pooler resolves to
+      # IPv6 first; the runner subnet has no IPv6 egress, so `pg pull` fails
+      # with "network is unreachable". Generate types via the Management API
+      # (--project-id) which is HTTPS-only, sidestepping the network issue.
+      - name: Generate types via Management API
+        run: |
+          supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" > types/database.types.ts
+          pnpm exec prettier --write types/database.types.ts
         env:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -171,6 +178,13 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      # `--linked` requires `supabase link --project-ref` first (writes
+      # supabase/.temp/project-ref). We link non-interactively then lint.
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+        env:
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - run: supabase db lint --linked
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
