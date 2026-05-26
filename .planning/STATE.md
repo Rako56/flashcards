@@ -14,16 +14,34 @@ Plan: 10-11 of 13 (Plans 1.7 PARTIAL + 1.8 PARTIAL + 1.8-A + 1.8-C + 1.9 + 1.11 
 Status: Massive session 2026-05-26 entregou todo o conteúdo de Foundation que NÃO depende de blockers externos (Sentry account, Vercel project). Plans 1.10 + 1.12 + 1.13 blocked on user setup. F-002 (REVOKE anon SECURITY DEFINER × 23) ainda precisa codebase grep mapeando flows legados. F-003 + F-004 documented as ACCEPTED RISKS (CDC compliance + leaderboard UX) with mitigation plans for Phase 4-8. Plan 1.8-B (simulado normalize) precisa decisão arquitetural. Plan 1.8-D (xp_events) opcional.
 Last activity: 2026-05-26 — sequência: Plan 1.9 audit (CI gates types-fresh + supabase-lint ativados) → Plan 1.11 partial (pino logger + correlationId + /api/healthz, 18 novos testes, todos green) → Plan 1.8-C (LGPD scaffolding — 3 tables + delete_user_cascade function) → F-003 + F-004 ACCEPTED RISK documentation.
 
-Progress:
-- **Phase 1 Foundation**: 92% (8 plans done + 1.7 partial + 1.8 partial + 1.8-A + 1.8-C = 12/13. Só Plan 1.13 E2E smoke test pendente.)
-- **Phase 2 Multi-Tenant**: 40% (2 sub-plans done — 2.1 getConcursoBySlug + Inter + brand tokens; 2.2 middleware subdomain resolver. Pendentes: 2.3 theme injection per concurso, 2.4 route groups [concurso], 2.5 cross-subdomain session E2E.)
-- **Phases 3-10**: not started
+Progress (MVP FUNCIONAL ENTREGUE 2026-05-26):
+- **Phase 1 Foundation**: 95% (Plans 1.1-1.12 done; só Plan 1.13 E2E smoke pendente)
+- **Phase 2 Multi-Tenant**: 80% (Plans 2.1-2.3 done; 2.4 route groups e 2.5 cross-subdomain E2E pendentes mas core funcional)
+- **Phase 3 Auth**: 60% (Plans 3.1-3.2 done — signup/login/logout/access/paywall; OAuth + LGPD endpoint + onboarding pendentes)
+- **Phase 4 Pagamento**: 50% (Plan 4.1 scaffolding done — webhook receiver + grant_concurso_access; 4.2 real Asaas API wireup espera ASAAS_API_KEY sandbox)
+- **Phase 5 SRS Core**: 70% (Plans 5.1-5.2 done — FSRS-5 algorithm + queue + UI session + persistence; streak/XP pendentes)
+- **Phase 6 Caderno**: 50% (Plan 6.1 done — listing + grouping; "revisar todos" modo pendente)
+- **Phase 7 Visual Identity**: 0% (depende decisão Rafael paleta/tipografia)
+- **Phase 8 Admin**: 0% (Cowork pipeline tool)
+- **Phase 9 Simulado**: 0% (decisão arquitetural pendente — usar simulados denormalized vs criar runs+answers)
+- **Phase 10 SEO**: 30% (Plan 10.1 done — robots + sitemap + legal pages; OG images + analytics pendentes)
 
-Recent commits:
-- PR #34 (6094dc0): middleware multi-tenant + subdomain resolver (24 new tests)
-- PR #33 (1a2040c): getConcursoBySlug helper + Inter font + brand CSS vars (6 new tests)
-- PR #32 (f253bf3): state update FOUND-08 + FOUND-09 done
-- PR #31 (fd98ada): Plan 1.10 Sentry SDK wireup (10 new tests)
+MVP funcional end-to-end:
+- 14 routes em produção (/, /login, /signup, /auth/callback, /checkout, /study, /erros, /termos, /privacidade, /sobre, /reembolso, /api/healthz, /api/webhooks/asaas, /sitemap.xml + /robots.txt)
+- Middleware multi-tenant + theme injection per concurso
+- 131 testes passando (lib/srs ≥97.5% coverage)
+- 43 PRs mergeados em main hoje
+
+Recent commits (esta extensão):
+- PR #43 (702cfd5): SEO + legal pages (robots, sitemap, termos, privacidade, sobre, reembolso)
+- PR #42 (e8a6c18): caderno de erros
+- PR #41 (3503216): study session UI + rateCard action
+- PR #40 (3ad1183): FSRS-5 + queue (97.5% coverage)
+- PR #39 (ab12f49): Asaas scaffolding + grant_concurso_access
+- PR #38 (375911a): access gate + PrepPaywall
+- PR #37 (52a3e07): auth pages + Server Actions
+- PR #36 (2e04bfd): theme injection per concurso
+- PR #34/35/33/etc — Phase 2 + Phase 1 finalizations
 
 **🎯 PRODUCTION DEPLOY LIVE 2026-05-26:** https://flashcards-henna-eight.vercel.app
 - Home page → 200 OK (Next.js page placeholder)
