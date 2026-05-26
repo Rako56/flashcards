@@ -36,6 +36,7 @@ import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCorrelationId, withCorrelationHeader } from '@/lib/observability/correlation'
 import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -70,7 +71,13 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url)
   if (url.searchParams.get('simulateError') === 'true') {
-    log.warn('simulateError=true — returning 500 for Sentry probe')
+    log.warn('simulateError=true — capturing test exception to Sentry')
+    // Send a real exception to Sentry with the correlationId tag so we
+    // can verify the full pipeline (Sentry SDK init → capture → DSN →
+    // dashboard) end-to-end after deploy. Plan 1.13 smoke test hits
+    // this path and asserts Sentry received an event with the tag.
+    const probeError = new Error('SENTRY_PROBE — intentional test exception from /api/healthz')
+    captureWithCorrelation(probeError, correlationId, { path: '/api/healthz', probe: true })
     const body = HealthzFail.parse({
       ok: false,
       checks: { supabase: 'ok', env: 'ok' },
