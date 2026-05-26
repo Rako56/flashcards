@@ -77,7 +77,13 @@ export async function SiteHeader() {
                   ) : null}
                 </div>
               ) : null}
-              <span className="hidden text-foreground/60 sm:inline">{user.email}</span>
+              <Link
+                href="/settings/account"
+                className="hidden text-foreground/60 transition-colors hover:text-foreground sm:inline"
+                title="Conta"
+              >
+                {user.email}
+              </Link>
               <form action={logoutAction}>
                 <Button type="submit" variant="ghost" size="sm">
                   Sair
