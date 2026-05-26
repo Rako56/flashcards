@@ -13,7 +13,17 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function MistakesPage() {
+interface GroupedMistake {
+  card: MistakeReview
+  count: number
+  latest: string
+}
+
+export default async function MistakesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ disciplina?: string }>
+}) {
   const concurso = await getConcursoFromHeaders()
   if (!concurso) {
     redirect('/')
@@ -27,13 +37,16 @@ export default async function MistakesPage() {
     redirect('/')
   }
 
+  const params = await searchParams
+  const disciplinaFilter = params.disciplina ?? null
+
   const mistakes = await getRecentMistakes(user.id, concurso.id, {
     limit: 100,
     windowDays: 90,
   })
 
   // Group by card_id — show each unique card once with count + latest
-  const groupedMap = new Map<string, { card: MistakeReview; count: number; latest: string }>()
+  const groupedMap = new Map<string, GroupedMistake>()
   for (const m of mistakes) {
     const existing = groupedMap.get(m.card_id)
     if (existing) {
@@ -45,7 +58,25 @@ export default async function MistakesPage() {
       groupedMap.set(m.card_id, { card: m, count: 1, latest: m.reviewed_at })
     }
   }
-  const grouped = Array.from(groupedMap.values()).sort((a, b) => b.latest.localeCompare(a.latest))
+  const allGrouped = Array.from(groupedMap.values()).sort((a, b) =>
+    b.latest.localeCompare(a.latest),
+  )
+
+  // Build disciplina facet counts (always against unfiltered list)
+  const disciplinaCounts = new Map<string, number>()
+  for (const entry of allGrouped) {
+    const key = entry.card.disciplina_titulo ?? '(sem disciplina)'
+    disciplinaCounts.set(key, (disciplinaCounts.get(key) ?? 0) + 1)
+  }
+  const disciplinas = Array.from(disciplinaCounts.entries()).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  )
+
+  const grouped = disciplinaFilter
+    ? allGrouped.filter(
+        (e) => (e.card.disciplina_titulo ?? '(sem disciplina)') === disciplinaFilter,
+      )
+    : allGrouped
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 px-6 py-10">
@@ -53,7 +84,8 @@ export default async function MistakesPage() {
         <div>
           <h1 className="text-2xl font-semibold">Caderno de erros</h1>
           <p className="mt-1 text-sm text-foreground/70">
-            {concurso.title} · {grouped.length} card(s) errado(s) nos últimos 90 dias
+            {concurso.title} · {grouped.length} card(s) errado(s)
+            {disciplinaFilter ? ` · ${disciplinaFilter}` : ' nos últimos 90 dias'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -62,16 +94,34 @@ export default async function MistakesPage() {
           </Button>
           {grouped.length > 0 ? (
             <Button asChild size="sm">
-              <Link href="/study?mode=mistakes">Revisar todos</Link>
+              <Link
+                href={
+                  disciplinaFilter
+                    ? `/study?mode=mistakes&disciplina=${encodeURIComponent(disciplinaFilter)}`
+                    : '/study?mode=mistakes'
+                }
+              >
+                Revisar
+              </Link>
             </Button>
           ) : null}
         </div>
       </header>
 
+      {disciplinas.length > 1 ? (
+        <DisciplinaFilter
+          disciplinas={disciplinas}
+          active={disciplinaFilter}
+          total={allGrouped.length}
+        />
+      ) : null}
+
       {grouped.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center shadow-sm">
           <p className="text-sm text-foreground/70">
-            Você ainda não errou nenhum card nas últimas 90 dias. Continue assim.
+            {disciplinaFilter
+              ? `Você não errou nenhum card de ${disciplinaFilter} nos últimos 90 dias.`
+              : 'Você ainda não errou nenhum card nas últimas 90 dias. Continue assim.'}
           </p>
         </div>
       ) : (
@@ -100,5 +150,56 @@ export default async function MistakesPage() {
         </ul>
       )}
     </main>
+  )
+}
+
+function DisciplinaFilter({
+  disciplinas,
+  active,
+  total,
+}: {
+  disciplinas: [string, number][]
+  active: string | null
+  total: number
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <FilterPill href="/erros" active={active === null} label="Todas" count={total} />
+      {disciplinas.map(([name, count]) => (
+        <FilterPill
+          key={name}
+          href={`/erros?disciplina=${encodeURIComponent(name)}`}
+          active={active === name}
+          label={name}
+          count={count}
+        />
+      ))}
+    </div>
+  )
+}
+
+function FilterPill({
+  href,
+  active,
+  label,
+  count,
+}: {
+  href: string
+  active: boolean
+  label: string
+  count: number
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+        active
+          ? 'bg-foreground text-background'
+          : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'
+      }`}
+    >
+      {label}
+      <span className="ml-1 opacity-60">({count})</span>
+    </Link>
   )
 }
