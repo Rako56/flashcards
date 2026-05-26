@@ -2083,6 +2083,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      grant_concurso_access: {
+        Args: {
+          p_concurso_slug: string
+          p_duration_days?: number
+          p_plan: string
+          p_purchase_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
