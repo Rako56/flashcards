@@ -20,6 +20,25 @@ Requer Node 20.18+ (ver `.nvmrc`) e pnpm 9.15.x.
 - `pnpm build` — build de produção
 - `pnpm start` — servidor de produção
 - `pnpm typecheck` — TypeScript strict 100% check
+- `pnpm lint` — ESLint (max-warnings 0)
+- `pnpm test` — Vitest unit tests
+- `pnpm test:coverage` — Vitest com coverage gates
+- `pnpm test:e2e` — Playwright E2E (requer `PLAYWRIGHT_BASE_URL`)
+- `pnpm format` / `pnpm format:check` — Prettier
+- `pnpm db:link` — link CLI ao projeto Supabase (requer `SUPABASE_PROJECT_ID` + `SUPABASE_ACCESS_TOKEN`)
+- `pnpm db:push` / `db:diff` / `db:reset` / `db:lint` — operações Supabase migrations
+- `pnpm types:gen` — regenera `types/database.types.ts` a partir do schema remoto
+
+## Cliente Supabase
+
+Três factories no `lib/supabase/`:
+
+- `server.ts` — `createClient()` para Server Components, Server Actions, Route Handlers (cookies via `next/headers`)
+- `browser.ts` — `createClient()` singleton para Client Components
+- `admin.ts` — `createAdminClient()` com `service_role` + `'server-only'` (NUNCA importar de Client Component)
+- `middleware.ts` — `updateSession(request)` para refrescar JWT no `middleware.ts` raiz (usa `getUser()`, não `getSession()`)
+
+Cookies têm `domain: .flashcards.com.br` em produção para login compartilhado entre subdomínios de concurso.
 
 ## Stack
 

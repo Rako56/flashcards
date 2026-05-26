@@ -11,3 +11,6 @@ tests/lint-fixtures/
 .husky/_/
 next-env.d.ts
 .planning/
+scripts/
+supabase/.temp/
+public/

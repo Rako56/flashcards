@@ -24,6 +24,11 @@ export default tsEslint.config(
       'next-env.d.ts',
       '*.tsbuildinfo',
       '.husky/_/',
+      // Vite-era leftovers on disk (untracked in git) — Plan 1.6 era cleanup
+      // pending; ignoring here so lint doesn't break on them. Once removed
+      // from disk, these entries can come out.
+      'dist/',
+      'scripts/',
     ],
   },
   // Base JS recommended for every file
