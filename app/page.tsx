@@ -2,6 +2,8 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { PrepPaywall } from '@/components/paywall/prep-paywall'
+import { ActivityFeed } from '@/components/widgets/activity-feed'
+import { getRecentActivity } from '@/lib/activity/get-recent-activity'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
@@ -59,9 +61,11 @@ export default async function HomePage() {
     return <PrepPaywall concurso={concurso} userEmail={user.email ?? '(sem e-mail)'} />
   }
 
-  // STATE 4: full access — render the app shell with study CTA
+  // STATE 4: full access — render the app shell with study CTA + activity widget
+  const activity = await getRecentActivity(user.id, concurso.id, 7)
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center gap-6 px-6 py-12">
       <div className="rounded-full bg-brand-primary px-4 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary-foreground">
         {concurso.banca ?? 'Concurso'} · {concurso.estado ?? 'BR'}
       </div>
@@ -69,13 +73,21 @@ export default async function HomePage() {
       <p className="text-center text-sm text-foreground/70">
         Bem-vindo, <span className="font-medium">{user.email}</span>
       </p>
-      <div className="mt-4 flex gap-3">
+
+      <div className="mt-4 flex flex-wrap justify-center gap-3">
         <Button asChild size="lg">
           <Link href="/study">Iniciar sessão de estudo</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
           <Link href="/erros">Caderno de erros</Link>
         </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/simulado">Simulados</Link>
+        </Button>
+      </div>
+
+      <div className="mt-6 w-full">
+        <ActivityFeed buckets={activity} />
       </div>
     </main>
   )
