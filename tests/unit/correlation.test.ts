@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CORRELATION_HEADER_NAME,
   getCorrelationId,
+  readCorrelationIdFromHeaders,
   withCorrelationHeader,
 } from '@/lib/observability/correlation'
 
@@ -60,6 +61,39 @@ describe('lib/observability/correlation', () => {
       // eslint-disable-next-line no-restricted-syntax -- test fixture UUID
       const returned = withCorrelationHeader(response, 'deadbeef-dead-beef-dead-beefdeadbeef')
       expect(returned).toBe(response)
+    })
+  })
+
+  describe('readCorrelationIdFromHeaders', () => {
+    it('returns the id when header has a valid UUID', () => {
+      // eslint-disable-next-line no-restricted-syntax -- test fixture UUID
+      const id = '550e8400-e29b-41d4-a716-446655440001'
+      const headersAccess = {
+        get: (name: string) => (name === CORRELATION_HEADER_NAME ? id : null),
+      }
+      expect(readCorrelationIdFromHeaders(headersAccess)).toBe(id)
+    })
+
+    it('returns null when header is absent', () => {
+      const headersAccess = { get: () => null }
+      expect(readCorrelationIdFromHeaders(headersAccess)).toBeNull()
+    })
+
+    it('returns null when header is present but malformed', () => {
+      const headersAccess = {
+        get: (name: string) => (name === CORRELATION_HEADER_NAME ? 'not-a-uuid' : null),
+      }
+      expect(readCorrelationIdFromHeaders(headersAccess)).toBeNull()
+    })
+
+    it('matches the case-permissive UUID regex used by getCorrelationId', () => {
+      // Same regex permissiveness — uppercase hex is allowed.
+      // eslint-disable-next-line no-restricted-syntax -- test fixture UUID
+      const id = 'DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF'
+      const headersAccess = {
+        get: (name: string) => (name === CORRELATION_HEADER_NAME ? id : null),
+      }
+      expect(readCorrelationIdFromHeaders(headersAccess)).toBe(id)
     })
   })
 })

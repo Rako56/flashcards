@@ -11,10 +11,12 @@
  *   - in response headers (`x-correlation-id`) so clients can include
  *     it in support tickets / bug reports
  *
- * TODO Plan 1.10: middleware.ts should also inject this header on
- *   the incoming `request.headers` so downstream Server Components
- *   can read it via `headers()`. Currently each Route Handler must
- *   call `getCorrelationId(request)` itself.
+ * Since middleware.ts now injects this on `request.headers`, downstream
+ * Server Components / Route Handlers should prefer reading the header
+ * via `headers().get('x-correlation-id')` instead of re-computing.
+ * `getCorrelationId(request)` remains the canonical entry point for
+ * code that doesn't go through middleware (e.g. /api/healthz which
+ * uses the matcher-excluded path style, or external workers).
  */
 
 const HEADER_NAME = 'x-correlation-id'
@@ -32,6 +34,22 @@ export function getCorrelationId(request: Request): string {
     return inbound
   }
   return crypto.randomUUID()
+}
+
+/**
+ * Reads the middleware-injected correlationId from a ReadonlyHeaders
+ * (the return of `headers()` from `next/headers`). Returns `null` if
+ * the header is missing — caller decides whether to fall back to a
+ * fresh `crypto.randomUUID()` or surface the gap.
+ */
+export function readCorrelationIdFromHeaders(headersAccess: {
+  get(name: string): string | null
+}): string | null {
+  const value = headersAccess.get(HEADER_NAME)
+  if (value && isLikelyUuid(value)) {
+    return value
+  }
+  return null
 }
 
 /**
