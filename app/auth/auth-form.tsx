@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import type { AuthActionResult } from './actions'
+import { GoogleButton } from './google-button'
 
 type AuthAction = (state: AuthActionResult | null, formData: FormData) => Promise<AuthActionResult>
 
@@ -110,6 +111,14 @@ export function AuthForm({ action, mode, altHref, altLabel }: AuthFormProps) {
       <Button type="submit" disabled={isPending}>
         {isPending ? 'Aguarde…' : SUBMIT_LABEL[mode]}
       </Button>
+
+      <div className="flex items-center gap-3 text-xs text-foreground/40">
+        <span className="h-px flex-1 bg-border" aria-hidden="true" />
+        <span>ou</span>
+        <span className="h-px flex-1 bg-border" aria-hidden="true" />
+      </div>
+
+      <GoogleButton label={mode === 'login' ? 'Entrar com Google' : 'Criar conta com Google'} />
 
       <p className="text-center text-sm text-foreground/70">
         <Link href={altHref} className="font-medium text-brand-primary hover:underline">
