@@ -54,8 +54,8 @@ export default async function SimuladoListPage() {
           <Button asChild variant="outline" size="sm">
             <Link href="/">Voltar</Link>
           </Button>
-          <Button size="sm" disabled title="Em breve">
-            Criar simulado
+          <Button asChild size="sm">
+            <Link href="/simulado/novo">Criar simulado</Link>
           </Button>
         </div>
       </header>
