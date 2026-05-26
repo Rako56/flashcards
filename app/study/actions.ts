@@ -18,6 +18,8 @@
  */
 import { z } from 'zod'
 
+import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
+import { awardXpAndStreak } from '@/lib/gamification/award-xp'
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { scheduleNext } from '@/lib/srs/fsrs'
@@ -111,6 +113,20 @@ export async function rateCardAction(input: {
     captureWithCorrelation(logError, correlationId, { stage: 'srs_reviews_insert' })
     log.error({ err: logError.message }, 'srs_reviews insert failed (non-fatal)')
     // Don't fail the whole action — progress was saved, log is secondary
+  }
+
+  // Award XP + streak (best-effort — does NOT block the SRS write).
+  // Concurso is read from headers; if missing (edge case), skip — the
+  // FSRS write still succeeded so the user keeps their session going.
+  const concurso = await getConcursoFromHeaders()
+  if (concurso) {
+    await awardXpAndStreak(supabase, {
+      userId: user.id,
+      concursoId: concurso.id,
+      rating: parsed.data.rating,
+      correlationId,
+      now,
+    })
   }
 
   log.info(
