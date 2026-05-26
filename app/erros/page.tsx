@@ -56,9 +56,16 @@ export default async function MistakesPage() {
             {concurso.title} · {grouped.length} card(s) errado(s) nos últimos 90 dias
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/">Voltar</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/">Voltar</Link>
+          </Button>
+          {grouped.length > 0 ? (
+            <Button asChild size="sm">
+              <Link href="/study?mode=mistakes">Revisar todos</Link>
+            </Button>
+          ) : null}
+        </div>
       </header>
 
       {grouped.length === 0 ? (
