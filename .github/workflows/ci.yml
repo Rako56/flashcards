@@ -291,9 +291,15 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           PREVIEW_URL="${{ secrets.PLAYWRIGHT_BASE_URL }}"
+          # Accept any HTTP response (200..599). The point of the wait
+          # is to confirm the deploy is REACHABLE, not that downstream
+          # services (Supabase) are healthy — the smoke spec itself
+          # accepts [200, 500] for /api/healthz, so we shouldn't gate
+          # on healthz being green here.
           for i in {1..30}; do
-            if curl -fsS "$PREVIEW_URL/api/healthz" > /dev/null; then
-              echo "Preview live at $PREVIEW_URL"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PREVIEW_URL/api/healthz" || echo "000")
+            if [ "$STATUS" != "000" ] && [ "$STATUS" -lt 600 ]; then
+              echo "Preview reachable at $PREVIEW_URL (HTTP $STATUS)"
               break
             fi
             sleep 10
