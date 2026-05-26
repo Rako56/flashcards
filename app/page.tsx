@@ -70,9 +70,14 @@ export default async function HomePage() {
       <p className="text-center text-sm text-foreground/70">
         Bem-vindo, <span className="font-medium">{user.email}</span>
       </p>
-      <Button asChild size="lg" className="mt-4">
-        <Link href="/study">Iniciar sessão de estudo</Link>
-      </Button>
+      <div className="mt-4 flex gap-3">
+        <Button asChild size="lg">
+          <Link href="/study">Iniciar sessão de estudo</Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/erros">Caderno de erros</Link>
+        </Button>
+      </div>
       <form action={logoutAction}>
         <Button type="submit" variant="ghost" size="sm">
           Sair
