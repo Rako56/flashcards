@@ -7,6 +7,8 @@ import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { getRecentMistakes, type MistakeReview } from '@/lib/mistakes/get-recent'
 
+import { MarkMasteredButton } from './mistake-row-actions'
+
 export const metadata = {
   title: 'Caderno de erros — Flashcards',
 }
@@ -141,8 +143,11 @@ export default async function MistakesPage({
                     {entry.card.front_text}
                   </p>
                 </div>
-                <div className="shrink-0 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-medium text-destructive">
-                  {entry.count}×
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-medium text-destructive">
+                    {entry.count}×
+                  </span>
+                  <MarkMasteredButton cardId={entry.card.card_id} />
                 </div>
               </div>
             </li>
