@@ -103,12 +103,12 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
         <section className="rounded-lg border border-brand-primary/40 bg-brand-primary/5 p-5">
           <h2 className="text-sm font-medium">Pronto pra começar?</h2>
           <p className="mt-2 text-sm text-foreground/70">
-            A tela de execução do simulado ainda está em desenvolvimento. Você verá suas questões
-            aqui em breve.
+            Modo preview disponível — visualize as questões sorteadas. A interface de execução
+            completa (cronômetro + answer collection) está em desenvolvimento.
           </p>
           <div className="mt-4">
-            <Button disabled title="Em breve">
-              Iniciar simulado
+            <Button asChild>
+              <Link href={`/simulado/${simulado.id}/run`}>Ver questões</Link>
             </Button>
           </div>
         </section>
