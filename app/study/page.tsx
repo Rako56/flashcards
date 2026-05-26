@@ -1,0 +1,120 @@
+import { redirect } from 'next/navigation'
+
+import { buildQueue, type QueueCardWithProgress } from '@/lib/srs/queue'
+import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
+import { getCurrentUser } from '@/lib/access/get-current-user'
+import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
+import { createClient } from '@/lib/supabase/server'
+
+import { StudySession } from './study-session'
+
+export const metadata = {
+  title: 'Estudar — Flashcards',
+}
+
+export const dynamic = 'force-dynamic'
+
+const SESSION_LIMIT = 20
+
+export default async function StudyPage() {
+  const concurso = await getConcursoFromHeaders()
+  if (!concurso) {
+    redirect('/')
+  }
+
+  const user = await getCurrentUser()
+  if (!user) {
+    redirect('/login?next=/study')
+  }
+
+  const hasAccess = await hasUserConcursoAccess(user.id, concurso.id)
+  if (!hasAccess) {
+    redirect('/')
+  }
+
+  // Fetch active flashcards for this concurso + the user's progress in
+  // a single query via the LEFT JOIN on user_flashcard_progress filtered
+  // to current user_id. We need a sample, not all 4000+ cards — a
+  // 200-row sample keeps payload reasonable while letting buildQueue
+  // pick from a fresh pool each session.
+  const supabase = await createClient()
+  const { data: cards, error } = await supabase
+    .from('admin_flashcards')
+    .select(
+      'id, front_text, back_text, tipo_card, topico_id, disciplina_id, fundamento_legal, user_flashcard_progress(stability, difficulty, lapses, last_reviewed_at, due_at)',
+    )
+    .eq('concurso_id', concurso.id)
+    .eq('status', 'active')
+    .limit(200)
+
+  if (error) {
+    // Show a degraded view rather than throwing into the framework boundary
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-md rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm">
+          Não foi possível carregar os cards. Tente recarregar a página.
+        </div>
+      </main>
+    )
+  }
+
+  // Filter user_flashcard_progress to current user (Supabase's nested
+  // select returns ALL related rows; we filter client-side because the
+  // typegen doesn't expose a way to apply per-relation eq() server-side
+  // without the foreign table being declared in admin_flashcards FK).
+  interface ProgressRow {
+    stability: number
+    difficulty: number
+    lapses: number
+    last_reviewed_at: string | null
+    due_at: string | null
+  }
+  const withProgress: QueueCardWithProgress[] = cards.map((c) => {
+    const progressArray = (c.user_flashcard_progress as ProgressRow[] | null) ?? []
+    const userProgress = progressArray[0] // assume RLS already filtered to current user
+    return {
+      id: c.id,
+      front_text: c.front_text,
+      back_text: c.back_text,
+      tipo_card: c.tipo_card,
+      topico_id: c.topico_id,
+      disciplina_id: c.disciplina_id,
+      fundamento_legal: c.fundamento_legal,
+      progress: userProgress
+        ? {
+            stability: userProgress.stability,
+            difficulty: userProgress.difficulty,
+            lapses: userProgress.lapses,
+            last_reviewed_at: userProgress.last_reviewed_at,
+            due_at: userProgress.due_at,
+          }
+        : null,
+    }
+  })
+
+  const queue = buildQueue(withProgress, { limit: SESSION_LIMIT })
+
+  if (queue.length === 0) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-md rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+          <h1 className="text-xl font-semibold">Sem cards prontos agora</h1>
+          <p className="mt-3 text-sm text-foreground/70">
+            Você está em dia com os cards desse concurso. Volte mais tarde quando o intervalo de
+            revisão acumular novos cards.
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="flex min-h-screen flex-col items-center bg-background py-10">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-semibold">{concurso.title}</h1>
+        <p className="text-sm text-foreground/60">Sessão de estudo · {queue.length} cards</p>
+      </div>
+      <StudySession initialQueue={queue} />
+    </main>
+  )
+}
