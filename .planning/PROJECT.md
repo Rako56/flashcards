@@ -2,7 +2,7 @@
 
 > **flashcards.com.br** — marketplace de preparações curadas para concursos públicos brasileiros.
 >
-> **Reboot 2026-05-21**: novo repositório, nova Supabase, redesign completo, arquitetura Next.js multi-concurso desde dia 1. Substitui o legado "Sparkle Study Scape" (mantido como arquivo).
+> **Reboot 2026-05-21**: novo repositório (`Rako56/flashcards`), Supabase reusada (decisão revista 2026-05-26 — projeto `zjyogswbgcauwqisvuyq` tem 236 migrations + dados de produção), redesign completo, arquitetura Next.js multi-concurso desde dia 1. Substitui o legado "Sparkle Study Scape" (mantido como arquivo + branch backup).
 
 ---
 
@@ -170,9 +170,9 @@ O sistema legado em `sparkle-study-scape` carrega herança complicada: nasceu no
 - **Tech stack — backend:** Supabase (Postgres + Auth + Storage + Edge Functions Deno) + `@supabase/ssr`. *Razão: o ponto forte do legado, mantemos. Edge fns só pra webhook Asaas e operações que precisam de Deno.*
 - **Tech stack — pagamento:** Asaas (PIX + boleto + cartão). *Razão: já validado no legado, Rafael confirmou 2026-05-21. Stripe/MP fora.*
 - **Tech stack — host:** Vercel + Supabase Pro. *Razão: Vercel é nativo Next.js; Supabase free tier auto-pausa, produto pago precisa Pro.*
-- **Repositório:** novo repo (a criar), nova organização ou conta GitHub. Legado fica em `sparkle-study-scape/` como arquivo.
-- **Supabase:** novo projeto, **não** o `zjyogswbgcauwqisvuyq` do legado.
-- **Migração de dados:** zero. Reboot 100% limpo.
+- **Repositório:** `Rako56/flashcards` (criado 2026-05-21). Legado fica em `sparkle-study-scape/` como arquivo + branch local `backup-sparkle-fixes`.
+- **Supabase:** ~~novo projeto, **não** o `zjyogswbgcauwqisvuyq` do legado.~~ → **REVISTO 2026-05-26**: reusar o projeto existente `zjyogswbgcauwqisvuyq` (236 migrations + 4.265 cards + 343 questões + 102 reviews + dados reais de produção interna). Criar greenfield custaria horas migrando dados manualmente. Plan 1.6 vai fazer `supabase db pull` pra trazer schema como migration inicial commitada no novo repo.
+- **Migração de dados:** ~~zero. Reboot 100% limpo.~~ → **REVISTO 2026-05-26**: zero migração de DB (mesmo projeto). Migração é de CÓDIGO (Vite → Next.js); dados ficam onde estão.
 - **Domínio:** flashcards.com.br já adquirido por Rafael, presente no HUB Obsidian.
 - **Cronograma:** sem deadline rígido, mas "o quanto antes melhor". Qualidade vem antes de prazo.
 - **Qualidade — não-negociável dia 1:** TS strict 100%, ESLint CI, pre-commit hook, ≥50% coverage no core (FSRS/checkout/webhook/access/scoring), Sentry, LGPD compliance, observabilidade.
@@ -195,7 +195,7 @@ O sistema legado em `sparkle-study-scape` carrega herança complicada: nasceu no
 | Subdomínio por concurso (`<slug>.flashcards.com.br`) com middleware | SEO long-tail dedicado por concurso, identidade visual própria, contexto isolado do aluno. 1 codebase, 1 deploy. | — Pending |
 | Multi-concurso por aluno desde dia 1 | Arquitetura DB-driven desde o início evita refactor quando lançar 2º concurso. Combo é roadmap Q4/2026 da PRODUTO.md. | — Pending |
 | Marca única "Flashcards" (não "Sparkle") | Domínio flashcards.com.br já é do Rafael; "Sparkle" é nome legado do Lovable que nunca foi externalizado. | ✓ Good — corrigido 2026-05-21 |
-| Zero migração de dados do legado | Rafael (2026-05-21): "começa limpo". DB do legado está sujo (4 tabelas zumbis, schema drift, RLS questionável). Cowork re-popula. | — Pending |
+| ~~Zero migração de dados do legado~~ → **Reusar projeto Supabase existente** (2026-05-26) | Achado durante Plan 1.6 prep: projeto `zjyogswbgcauwqisvuyq` tem 236 migrations + 4.265 cards + 343 questões + dados de produção interna. Recriar perderia tudo. Estratégia: `supabase db pull` traz schema como migration inicial; código Next.js conecta no projeto existente; RLS + RPCs já funcionam. Schema drift do legado é mitigado durante Plan 1.6 (typegen via `supabase gen types`). | ✓ Confirmed 2026-05-26 |
 | Qualidade enforced desde commit 1 | Top causa raiz dos bugs do legado: qualidade frouxa permitiu drift. TS strict 100%, lint CI, pre-commit, ≥50% coverage core, Sentry. | — Pending |
 | Painel admin junto com app (route group restrito) | Mantém 1 deploy, 1 codebase. Cowork acessa via `admin.flashcards.com.br` apontando pra `(admin)` route group. Simples. | — Pending |
 | FSRS-5 client-side (mantém approach do legado) | Modelo de 19 weights está correto; problema do legado foi falta de testes + queue shuffler ruim, não o algoritmo. Reimplementar com tests. | — Pending |
