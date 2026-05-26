@@ -84,9 +84,9 @@ export async function SiteHeader() {
                 </div>
               ) : null}
               <Link
-                href="/settings/account"
+                href="/settings"
                 className="hidden text-foreground/60 transition-colors hover:text-foreground sm:inline"
-                title="Conta"
+                title="Configurações"
               >
                 {user.email}
               </Link>
