@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { Wordmark } from '@/components/brand/wordmark'
+
 /**
  * Site footer with legal/marketing links.
  * Static — no DB / user lookups.
@@ -8,8 +10,11 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-border bg-background/50">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-xs text-foreground/60 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          © {new Date().getFullYear()} Flashcards · Marketplace de preparações para concursos.
+        <div className="flex items-center gap-3">
+          <Wordmark size="sm" glyphOnly className="text-foreground/70" />
+          <span>
+            © {new Date().getFullYear()} Flashcards · Marketplace de preparações para concursos.
+          </span>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-1">
           <Link href="/sobre" className="hover:text-foreground">
@@ -23,6 +28,9 @@ export function SiteFooter() {
           </Link>
           <Link href="/reembolso" className="hover:text-foreground">
             Reembolso
+          </Link>
+          <Link href="/leaderboard" className="hover:text-foreground">
+            Leaderboard
           </Link>
         </nav>
       </div>
