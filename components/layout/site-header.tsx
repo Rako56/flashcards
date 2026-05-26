@@ -55,6 +55,12 @@ export async function SiteHeader() {
               >
                 Caderno
               </Link>
+              <Link
+                href="/leaderboard"
+                className="text-foreground/70 transition-colors hover:text-foreground"
+              >
+                Ranking
+              </Link>
             </nav>
           ) : null}
         </div>
