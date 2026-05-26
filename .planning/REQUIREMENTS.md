@@ -22,7 +22,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [x] **FOUND-07**: GitHub Actions: lint → typecheck → test → build → Supabase migrations lint, com proteção de branch `main` *(Plan 1.5 — 2026-05-26; admin-bypass enabled as solo-dev trade-off — see STATE.md Decisions § "Solo dev branch protection trade-off")*
 - [ ] **FOUND-08**: Sentry SDK Next.js 15 instalado com sourcemaps via Vercel integration; tags `correlationId`, `userId`, `concursoSlug`
 - [ ] **FOUND-09**: Pino structured logging em todas Route Handlers e Server Actions com `correlationId` propagado via header
-- [ ] **FOUND-10**: Supabase Pro project (sa-east-1) criado, Supabase branching habilitada por PR
+- [x] **FOUND-10**: Supabase Pro project (existing `zjyogswbgcauwqisvuyq` em `us-west-2` — region trade-off decisão 2026-05-26, latência aceitável), Supabase Branching habilitada via GitHub Integration *(Plan 1.6 — 2026-05-26; reuso de projeto existente vs greenfield — ver STATE.md Decisions § "Supabase project reuse")*
 - [ ] **FOUND-11**: Schema base migrado em 8 migrations (admin_concursos, admin_*, users/profiles, user_concurso_access, srs/progress/reviews, simulados, purchases/webhook_events, audit_log) com RLS em toda tabela e Postgres functions atômicas
 - [ ] **FOUND-12**: Pipeline de geração de tipos Supabase (`pnpm types:gen`) roda no CI; build falha se `database.types.ts` estiver desatualizado vs migrations
 
@@ -282,7 +282,7 @@ Cada v1 requirement mapeia para exatamente UMA fase. Phases sequenciais 1-10 (se
 | FOUND-07 | Phase 1: Foundation | ✓ Done (Plan 1.5) |
 | FOUND-08 | Phase 1: Foundation | Pending |
 | FOUND-09 | Phase 1: Foundation | Pending |
-| FOUND-10 | Phase 1: Foundation | Pending |
+| FOUND-10 | Phase 1: Foundation | ✓ Done (Plan 1.6) |
 | FOUND-11 | Phase 1: Foundation | Pending |
 | FOUND-12 | Phase 1: Foundation | Pending |
 | MULTI-01 | Phase 2: Multi-Tenant Skeleton | Pending |
