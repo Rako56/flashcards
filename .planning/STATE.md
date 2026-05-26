@@ -74,9 +74,19 @@ None yet.
 - ✅ Branch protection rule active on `main` with required status checks `[install, lint, format, typecheck, test, build]`. "Do not allow bypassing the above settings" UNCHECKED (deliberate solo-dev trade-off — see Decisions).
 - ✅ Plan 1.5 Task 5 probes executed (results in `01-05-TASK-5-PROBE.md`).
 
-**PENDING USER ACTION (não bloqueador imediato):**
+**PENDING USER ACTION pra destravar Plan 1.6 execution:**
 
-- ⏳ **SUPABASE_ACCESS_TOKEN** secret ainda em placeholder `pending-plan-1.6`. Token pessoal — só Rafael consegue gerar em https://supabase.com/dashboard/account/tokens. Necessário pra Plan 1.6+ (jobs CI que usam Supabase CLI: `supabase db pull`, `supabase db push`, `supabase functions deploy`, `supabase gen types`). 3 outros Supabase secrets atualizados pros valores reais em 2026-05-26 10:30 UTC.
+Plan 1.6 PLAN.md revisado (PR #15 merged 2026-05-26) pra refletir decisão de reuso. Antes de eu poder executar Tasks 2-5 do Plan 1.6, Rafael precisa fazer 5 itens manuais no Supabase Dashboard:
+
+1. ⏳ **SUPABASE_ACCESS_TOKEN** — gerar em https://supabase.com/dashboard/account/tokens + `gh secret set SUPABASE_ACCESS_TOKEN --body "<token>" --repo Rako56/flashcards`
+2. ⏳ **SUPABASE_SERVICE_ROLE_KEY** (NEW requirement per revision) — Dashboard → Settings → API → service_role + `gh secret set SUPABASE_SERVICE_ROLE_KEY --body "<key>" --repo Rako56/flashcards`. NUNCA prefixar com `NEXT_PUBLIC_`.
+3. ⏳ **Auth Settings**: HIBP ON, min password 10 chars, redirect URLs incluem `https://flashcards.com.br/auth/callback` + `https://*.flashcards.com.br/auth/callback`, Site URL `https://flashcards.com.br`. (Provavelmente parcialmente configurado pra produção legada — revisar e completar.)
+4. ⏳ **GitHub Integration**: re-point do repo legado `sparkle-study-scape` pra `Rako56/flashcards` em Dashboard → Settings → Integrations → GitHub.
+5. ⏳ **Branching**: Dashboard → Branches → Enable Branching (Pro feature, provavelmente OFF).
+
+Quando 5 itens completos, eu executo Tasks 2-5 do Plan 1.6 (install CLI + link + `supabase db pull` + 4 lib client files + tests + PR).
+
+**ADICIONAL — divergência de estrutura encontrada:** Plan 1.6 PLAN.md original referencia paths `flashcards/lib/supabase/*` (assume monorepo com subdir `flashcards/`). Mas o repo após reset é flat (`app/`, `lib/` na raiz, sem subdir `flashcards/`). Durante execução do Plan 1.6, paths devem ser ajustados pra `lib/supabase/*` direto. Não bloqueia agora; resolve quando executar.
 
 **OPEN questions (deferred from research, not blockers yet):**
 
