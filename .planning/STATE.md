@@ -14,7 +14,16 @@ Plan: 10-11 of 13 (Plans 1.7 PARTIAL + 1.8 PARTIAL + 1.8-A + 1.8-C + 1.9 + 1.11 
 Status: Massive session 2026-05-26 entregou todo o conteúdo de Foundation que NÃO depende de blockers externos (Sentry account, Vercel project). Plans 1.10 + 1.12 + 1.13 blocked on user setup. F-002 (REVOKE anon SECURITY DEFINER × 23) ainda precisa codebase grep mapeando flows legados. F-003 + F-004 documented as ACCEPTED RISKS (CDC compliance + leaderboard UX) with mitigation plans for Phase 4-8. Plan 1.8-B (simulado normalize) precisa decisão arquitetural. Plan 1.8-D (xp_events) opcional.
 Last activity: 2026-05-26 — sequência: Plan 1.9 audit (CI gates types-fresh + supabase-lint ativados) → Plan 1.11 partial (pino logger + correlationId + /api/healthz, 18 novos testes, todos green) → Plan 1.8-C (LGPD scaffolding — 3 tables + delete_user_cascade function) → F-003 + F-004 ACCEPTED RISK documentation.
 
-Progress: [██████████] 92% (Phase 1: 8 plans done + 1.7 partial + 1.8 partial + 1.8-A + 1.8-C = 12/13 effective work units. Resta apenas Plan 1.13 E2E smoke test.)
+Progress:
+- **Phase 1 Foundation**: 92% (8 plans done + 1.7 partial + 1.8 partial + 1.8-A + 1.8-C = 12/13. Só Plan 1.13 E2E smoke test pendente.)
+- **Phase 2 Multi-Tenant**: 40% (2 sub-plans done — 2.1 getConcursoBySlug + Inter + brand tokens; 2.2 middleware subdomain resolver. Pendentes: 2.3 theme injection per concurso, 2.4 route groups [concurso], 2.5 cross-subdomain session E2E.)
+- **Phases 3-10**: not started
+
+Recent commits:
+- PR #34 (6094dc0): middleware multi-tenant + subdomain resolver (24 new tests)
+- PR #33 (1a2040c): getConcursoBySlug helper + Inter font + brand CSS vars (6 new tests)
+- PR #32 (f253bf3): state update FOUND-08 + FOUND-09 done
+- PR #31 (fd98ada): Plan 1.10 Sentry SDK wireup (10 new tests)
 
 **🎯 PRODUCTION DEPLOY LIVE 2026-05-26:** https://flashcards-henna-eight.vercel.app
 - Home page → 200 OK (Next.js page placeholder)
