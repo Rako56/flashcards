@@ -54,8 +54,8 @@ export default async function HomePage() {
 
         {/* Hero */}
         <section className="flex flex-col items-center gap-6 text-center">
-          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-            Concurso público <span className="text-brand-primary">sem ruído</span>.
+          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-7xl">
+            Concurso público <span className="italic text-brand-primary">sem ruído</span>.
           </h1>
           <p className="max-w-2xl text-lg text-foreground/70">
             Flashcards inteligentes, simulados e caderno de erros — só o que move sua nota.

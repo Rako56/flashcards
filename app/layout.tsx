@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Fraunces, Inter } from 'next/font/google'
 import { headers } from 'next/headers'
 import type { ReactNode } from 'react'
 
@@ -19,6 +19,20 @@ const inter = Inter({
   display: 'swap',
 })
 
+// Fraunces — display serif for marketing surfaces. Used only on hero/H1
+// of public pages (apex landing, per-concurso landings). Weighted toward
+// semibold/bold; `opsz` axis makes large titles look intentional rather
+// than "default Times-on-steroids". Latin subset covers PT-BR diacritics.
+// Tailwind alias: `font-display` via theme.fontFamily.display.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: ['500', '600', '700'],
+  style: ['normal'],
+  axes: ['opsz'],
+})
+
 export const metadata: Metadata = {
   title: 'Flashcards',
   description: 'Marketplace de preparações curadas para concursos públicos brasileiros.',
@@ -34,7 +48,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const cssVars = themeToCssVars(theme)
 
   return (
-    <html lang="pt-BR" className={inter.variable}>
+    <html lang="pt-BR" className={`${inter.variable} ${fraunces.variable}`}>
       <head>
         {/*
          * Per-concurso theme override. Injecting a :root style block

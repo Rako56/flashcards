@@ -19,6 +19,11 @@ const config: Config = {
         // Fallback stack matches Tailwind defaults so any FOUC frame
         // before Inter loads still renders sans-serif.
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        // `--font-display` is set by next/font Fraunces. Used only on
+        // marketing hero/H1 surfaces — `font-display` alias in Tailwind.
+        // Fallback stack uses common serifs so any FOUC frame still
+        // reads editorial.
+        display: ['var(--font-display)', 'Georgia', 'serif'],
       },
       colors: {
         // Brand tokens — overridden per-concurso by middleware/layout.
