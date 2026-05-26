@@ -60,7 +60,7 @@ export default async function HomePage() {
     return <PrepPaywall concurso={concurso} userEmail={user.email ?? '(sem e-mail)'} />
   }
 
-  // STATE 4: full access — render the app shell (Phase 5+ adds SRS UI)
+  // STATE 4: full access — render the app shell with study CTA
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
       <div className="rounded-full bg-brand-primary px-4 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary-foreground">
@@ -70,10 +70,9 @@ export default async function HomePage() {
       <p className="text-center text-sm text-foreground/70">
         Bem-vindo, <span className="font-medium">{user.email}</span>
       </p>
-      <p className="mt-4 max-w-md text-center text-sm text-foreground/60">
-        Próxima fase (Phase 5): sessão de estudo SRS. Por enquanto, você está autenticado e tem
-        acesso ativo a essa preparação.
-      </p>
+      <Button asChild size="lg" className="mt-4">
+        <Link href="/study">Iniciar sessão de estudo</Link>
+      </Button>
       <form action={logoutAction}>
         <Button type="submit" variant="ghost" size="sm">
           Sair
