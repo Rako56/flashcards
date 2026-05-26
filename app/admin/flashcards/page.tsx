@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
+import { CardStatusToggle } from './card-actions'
+
 export const metadata = {
   title: 'Flashcards — Admin',
 }
@@ -65,6 +67,7 @@ export default async function AdminFlashcardsPage({
               <th className="px-4 py-3 text-left">Disciplina</th>
               <th className="px-4 py-3 text-left">Tópico</th>
               <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -87,11 +90,14 @@ export default async function AdminFlashcardsPage({
                     {c.status}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <CardStatusToggle cardId={c.id} currentStatus={c.status} />
+                </td>
               </tr>
             ))}
             {cards.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-foreground/50">
+                <td colSpan={6} className="px-4 py-6 text-center text-foreground/50">
                   Nenhum flashcard {params.concurso ? 'para esse concurso' : ''}.
                 </td>
               </tr>
