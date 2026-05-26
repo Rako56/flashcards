@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { getCurrentUser } from '@/lib/access/get-current-user'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { createClient } from '@/lib/supabase/server'
 import { formatCpf } from '@/lib/validation/cpf'
 
@@ -8,6 +9,7 @@ import { OnboardingForm } from './onboarding-form'
 
 export const metadata = {
   title: 'Bem-vindo — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
 import { CreateSimuladoForm } from './create-form'
 
 export const metadata = {
   title: 'Criar simulado — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

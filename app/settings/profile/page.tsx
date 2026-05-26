@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser } from '@/lib/access/get-current-user'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { createClient } from '@/lib/supabase/server'
 import { formatCpf } from '@/lib/validation/cpf'
 
@@ -11,6 +12,7 @@ import { ProfileForm } from './profile-form'
 
 export const metadata = {
   title: 'Perfil — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

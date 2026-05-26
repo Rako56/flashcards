@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { getSimuladoById } from '@/lib/simulados/get-by-id'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +28,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  return { title: `Simulado ${id.slice(0, 8)} — Flashcards` }
+  return { title: `Simulado ${id.slice(0, 8)} — Flashcards`, ...NOINDEX_METADATA }
 }
 
 export default async function SimuladoDetailPage({ params }: { params: Promise<{ id: string }> }) {

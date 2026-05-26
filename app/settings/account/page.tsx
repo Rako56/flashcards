@@ -4,11 +4,13 @@ import { redirect } from 'next/navigation'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser } from '@/lib/access/get-current-user'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
 import { DeleteAccountForm } from './delete-account-form'
 
 export const metadata = {
   title: 'Conta — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

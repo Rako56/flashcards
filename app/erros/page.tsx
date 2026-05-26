@@ -6,11 +6,13 @@ import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { getRecentMistakes, type MistakeReview } from '@/lib/mistakes/get-recent'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
 import { MarkMasteredButton } from './mistake-row-actions'
 
 export const metadata = {
   title: 'Caderno de erros — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

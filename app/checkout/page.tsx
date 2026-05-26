@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation'
 
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
+
 import { CheckoutButton } from './checkout-button'
 
 export const metadata = {
   title: 'Checkout — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'
