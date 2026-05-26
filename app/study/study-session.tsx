@@ -72,8 +72,12 @@ export function StudySession({ initialQueue }: StudySessionProps) {
   function handleRate(rating: Rating) {
     if (!card) return
     if (isPending) return // double-press guard
+    // index + 1 === total queue length means this is the last card.
+    // Pass isSessionFinale so awardXpAndStreak doubles XP for the
+    // celebratory finish bonus (sparkle parity, feat #7).
+    const isSessionFinale = index === initialQueue.length - 1
     startTransition(async () => {
-      const result = await rateCardAction({ cardId: card.id, rating })
+      const result = await rateCardAction({ cardId: card.id, rating, isSessionFinale })
       if (!result.ok) {
         // Surface error in UI somehow — for now, swallow + log to Sentry
         // via the network layer. Phase 5.3 adds a toast/snackbar.
