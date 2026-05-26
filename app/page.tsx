@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PrepPaywall } from '@/components/paywall/prep-paywall'
 import { ActivityFeed } from '@/components/widgets/activity-feed'
+import { DailyGoalWidget } from '@/components/widgets/daily-goal'
 import { getRecentActivity } from '@/lib/activity/get-recent-activity'
+import { getTodayProgress } from '@/lib/activity/get-today-progress'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
@@ -187,8 +189,11 @@ export default async function HomePage() {
     return <PrepPaywall concurso={concurso} userEmail={user.email ?? '(sem e-mail)'} />
   }
 
-  // STATE 4: full access — render the app shell with study CTA + activity widget
-  const activity = await getRecentActivity(user.id, concurso.id, 7)
+  // STATE 4: full access — render the app shell with study CTA + activity widgets
+  const [activity, progress] = await Promise.all([
+    getRecentActivity(user.id, concurso.id, 7),
+    getTodayProgress(user.id, concurso.id),
+  ])
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center gap-6 px-6 py-12">
@@ -216,7 +221,8 @@ export default async function HomePage() {
         </Button>
       </div>
 
-      <div className="mt-6 w-full">
+      <div className="mt-6 grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+        <DailyGoalWidget progress={progress} />
         <ActivityFeed buckets={activity} />
       </div>
     </main>
