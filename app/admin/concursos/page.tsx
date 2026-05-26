@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
+import { ConcursoStatusToggle } from './concurso-actions'
+
 export const metadata = {
   title: 'Concursos — Admin',
 }
@@ -45,6 +47,7 @@ export default async function AdminConcursosPage() {
               <th className="px-4 py-3 text-left">Estado</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-right">Prio</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -56,18 +59,27 @@ export default async function AdminConcursosPage() {
                 <td className="px-4 py-3 text-foreground/70">{c.orgao ?? '—'}</td>
                 <td className="px-4 py-3 text-foreground/70">{c.estado ?? '—'}</td>
                 <td className="px-4 py-3 text-foreground/70">
-                  <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      c.status === 'active'
+                        ? 'bg-emerald-500/15 text-emerald-600'
+                        : 'bg-foreground/10 text-foreground/70'
+                    }`}
+                  >
                     {c.status}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-foreground/60">
                   {c.prioridade ?? '—'}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <ConcursoStatusToggle concursoId={c.id} currentStatus={c.status} />
+                </td>
               </tr>
             ))}
             {concursos.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-foreground/50">
+                <td colSpan={8} className="px-4 py-6 text-center text-foreground/50">
                   Nenhum concurso cadastrado.
                 </td>
               </tr>
