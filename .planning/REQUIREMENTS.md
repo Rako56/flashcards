@@ -190,7 +190,7 @@ Observabilidade, performance, LGPD, soft launch.
 - [ ] **OPS-03**: PostHog data residency confirmada LGPD-compliant; identificação por user_id interno (NUNCA CPF)
 - [ ] **OPS-04**: Performance budgets em CI: landing <150KB / app pages <250KB first-load JS; falha build se exceder
 - [ ] **OPS-05**: Supabase Pro confirmado: PITR 7 dias, HIBP on, connection pooling em port 6543 (transaction mode), monitoring de conexões
-- [ ] **OPS-06**: Vercel Pro confirmado: wildcard SSL provisioned para `*.flashcards.com.br`, apex em A record, ENV vars segregados por preview/production
+- [~] **OPS-06**: Vercel Pro confirmado: wildcard SSL provisioned para `*.flashcards.com.br`, apex em A record, ENV vars segregados por preview/production *(PARCIAL — Plan 1.12 2026-05-26: production deploy LIVE em `flashcards-henna-eight.vercel.app` (Vercel Hobby tier, suficiente até Phase 4). Home + /api/healthz responding. PLAYWRIGHT_BASE_URL setado em GH Secrets. Pendente: custom domain `flashcards.com.br` apontamento DNS (Hostinger → Vercel A/CNAME records), wildcard SSL `*.flashcards.com.br` (requer Vercel Pro $20/mo + custom domain confirmed), env vars segregação preview/production (hoje compartilham; trivial split quando precisar).)*
 - [ ] **OPS-07**: LGPD account-deletion E2E: solicitação → email confirma → dados deletados em Supabase + Resend audience + PostHog person + Sentry user (cascade via worker)
 - [ ] **OPS-08**: Healthcheck endpoint `/api/healthz` com checks (DB ping, Asaas reach, Sentry reach); Vercel monitors
 - [ ] **OPS-09**: Documentação operacional: runbook de incidente (webhook offline, DB pause, payment dispute), checklist de deploy, contact list
