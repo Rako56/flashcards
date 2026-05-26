@@ -60,6 +60,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Usuários
             </Link>
             <Link
+              href="/admin/webhooks"
+              className="text-foreground/70 transition-colors hover:text-foreground"
+            >
+              Webhooks
+            </Link>
+            <Link
               href="/"
               className="text-xs text-foreground/50 transition-colors hover:text-foreground"
             >
