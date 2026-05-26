@@ -24,7 +24,7 @@ Quality gates não-negociáveis aplicados desde commit 1.
 - [ ] **FOUND-09**: Pino structured logging em todas Route Handlers e Server Actions com `correlationId` propagado via header
 - [x] **FOUND-10**: Supabase Pro project (existing `zjyogswbgcauwqisvuyq` em `us-west-2` — region trade-off decisão 2026-05-26, latência aceitável), Supabase Branching habilitada via GitHub Integration *(Plan 1.6 — 2026-05-26; reuso de projeto existente vs greenfield — ver STATE.md Decisions § "Supabase project reuse")*
 - [~] **FOUND-11**: Schema base migrado em 8 migrations (admin_concursos, admin_*, users/profiles, user_concurso_access, srs/progress/reviews, simulados, purchases/webhook_events, audit_log) com RLS em toda tabela e Postgres functions atômicas *(PARCIAL — Plans 1.7 + 1.8 audits 2026-05-26: schema base já em produção com 236 migrations + RLS 33/33 tabelas. Plan 1.7 entregou F-001 (function search_path); F-002 a F-008 deferred. Plan 1.8 audit identificou 7/14 tabelas MISSING e quebrou em sub-plans 1.8-A (webhook_events 🔴 Phase 4 blocker), 1.8-B (simulado normalize 🟠 Phase 9), 1.8-C (LGPD audit_log/legal_audit_log/lgpd_deletion 🟡 compliance), 1.8-D (xp_events 🟢 opcional). Ver `.planning/phases/01-foundation/01-07-AUDIT.md` + `01-08-AUDIT.md`)*
-- [ ] **FOUND-12**: Pipeline de geração de tipos Supabase (`pnpm types:gen`) roda no CI; build falha se `database.types.ts` estiver desatualizado vs migrations
+- [x] **FOUND-12**: Pipeline de geração de tipos Supabase (`pnpm types:gen`) roda no CI; build falha se `database.types.ts` estiver desatualizado vs migrations *(Plan 1.9 — 2026-05-26; types reais via `supabase gen types --linked` shipped em Plan 1.6, types-fresh + supabase-lint CI jobs ativados — `if: false` → `if: true`)*
 
 ### Multi-Tenant Architecture (MULTI)
 
@@ -284,7 +284,7 @@ Cada v1 requirement mapeia para exatamente UMA fase. Phases sequenciais 1-10 (se
 | FOUND-09 | Phase 1: Foundation | Pending |
 | FOUND-10 | Phase 1: Foundation | ✓ Done (Plan 1.6) |
 | FOUND-11 | Phase 1: Foundation | ~ Partial (Plan 1.7 audit + F-001) |
-| FOUND-12 | Phase 1: Foundation | Pending |
+| FOUND-12 | Phase 1: Foundation | ✓ Done (Plan 1.9 — via Plan 1.6 gen + 1.9 CI activate) |
 | MULTI-01 | Phase 2: Multi-Tenant Skeleton | Pending |
 | MULTI-02 | Phase 2: Multi-Tenant Skeleton | Pending |
 | MULTI-03 | Phase 2: Multi-Tenant Skeleton | Pending |

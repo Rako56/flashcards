@@ -2,10 +2,10 @@
 #
 # Triggers on: PR to `main` + push to `main`.
 # Gates: install (shared cache) → lint, format, typecheck, test (parallel) → build → e2e.
-# Aux jobs (auto-skip via guards until their owning plan lands):
-#   - types-fresh   (activates Plan 1.9 — `types/database.types.ts`)
-#   - supabase-lint (activates Plans 1.7/1.8 — `supabase/migrations/*.sql`)
-#   - e2e           (activates Plans 1.12/1.13 — `PLAYWRIGHT_BASE_URL` secret + Vercel preview)
+# Aux jobs:
+#   - types-fresh   (ACTIVE since Plan 1.9 — `types/database.types.ts`)
+#   - supabase-lint (ACTIVE since Plan 1.9 — `supabase/migrations/*.sql` exist)
+#   - e2e           (auto-skip via gate until Plans 1.12/1.13 wire `PLAYWRIGHT_BASE_URL` + Vercel preview)
 #
 # Branch protection on `main` (set manually per Plan 1.5 Task 4) enforces these as required
 # status checks. Direct push to `main` is rejected; merge requires PR + ≥1 reviewer +
@@ -127,14 +127,12 @@ jobs:
           retention-days: 7
 
   # --- Types-fresh: regenerates types/database.types.ts from linked Supabase ---
-  # and fails on diff. SKIPPED until Plan 1.9 ships the canonical types file.
+  # and fails on diff. ACTIVE since Plan 1.9 (2026-05-26) — Plan 1.6 shipped
+  # the canonical types file (2158 lines, generated from production schema).
   types-fresh:
     name: types-fresh
     needs: install
-    # Plan 1.9 enables this gate by changing `if: false` to `if: true` when
-    # `types/database.types.ts` is committed. hashFiles() can't be used at
-    # job-level if: because it's evaluated before checkout (no files yet).
-    if: false
+    if: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -161,14 +159,12 @@ jobs:
           fi
 
   # --- Supabase-lint: lints supabase/migrations/*.sql against the linked project. -
-  # SKIPPED until Plans 1.7/1.8 ship the first migrations.
+  # ACTIVE since Plan 1.9 (2026-05-26) — Plans 1.7 F-001 + 1.8-A shipped the
+  # first migrations (search_path fix + webhook_events).
   supabase-lint:
     name: supabase-lint
     needs: install
-    # Plans 1.7/1.8 enable this gate by changing `if: false` to `if: true` when
-    # `supabase/migrations/*.sql` files are committed. hashFiles() can't be
-    # used at job-level if: because it's evaluated before checkout.
-    if: false
+    if: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
