@@ -110,14 +110,23 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
 
       {simulado.status === 'pending' || simulado.status === 'in_progress' ? (
         <section className="rounded-lg border border-brand-primary/40 bg-brand-primary/5 p-5">
-          <h2 className="text-sm font-medium">Pronto pra começar?</h2>
+          <h2 className="text-sm font-medium">
+            {simulado.status === 'in_progress' ? 'Continuar de onde parou?' : 'Pronto pra começar?'}
+          </h2>
           <p className="mt-2 text-sm text-foreground/70">
-            Modo preview disponível — visualize as questões sorteadas. A interface de execução
-            completa (cronômetro + answer collection) está em desenvolvimento.
+            {simulado.status === 'in_progress'
+              ? 'Suas respostas ficam salvas localmente no navegador. Clique abaixo pra retomar a sessão.'
+              : `Cronômetro ${
+                  simulado.time_limit_minutes
+                    ? `de ${String(simulado.time_limit_minutes)} min, `
+                    : ''
+                }navegação livre, respostas em radio. Você pode pausar e voltar — o progresso fica salvo no navegador até finalizar.`}
           </p>
           <div className="mt-4">
             <Button asChild>
-              <Link href={`/simulado/${simulado.id}/run`}>Ver questões</Link>
+              <Link href={`/simulado/${simulado.id}/run`}>
+                {simulado.status === 'in_progress' ? 'Continuar' : 'Iniciar simulado'}
+              </Link>
             </Button>
           </div>
         </section>
