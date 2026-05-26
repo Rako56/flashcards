@@ -76,15 +76,29 @@ None yet.
 
 **PENDING USER ACTION pra destravar Plan 1.6 execution:**
 
-Plan 1.6 PLAN.md revisado (PR #15 merged 2026-05-26) pra refletir decisão de reuso. Antes de eu poder executar Tasks 2-5 do Plan 1.6, Rafael precisa fazer 5 itens manuais no Supabase Dashboard:
+Plan 1.6 PLAN.md revisado (PR #15 merged 2026-05-26) pra refletir decisão de reuso. 4 dos 5 blockers manuais foram resolvidos via Supabase Management API em 2026-05-26 (sessão tardia). Resta apenas 1 ação manual de UI.
 
-1. ⏳ **SUPABASE_ACCESS_TOKEN** — gerar em https://supabase.com/dashboard/account/tokens + `gh secret set SUPABASE_ACCESS_TOKEN --body "<token>" --repo Rako56/flashcards`
-2. ⏳ **SUPABASE_SERVICE_ROLE_KEY** (NEW requirement per revision) — Dashboard → Settings → API → service_role + `gh secret set SUPABASE_SERVICE_ROLE_KEY --body "<key>" --repo Rako56/flashcards`. NUNCA prefixar com `NEXT_PUBLIC_`.
-3. ⏳ **Auth Settings**: HIBP ON, min password 10 chars, redirect URLs incluem `https://flashcards.com.br/auth/callback` + `https://*.flashcards.com.br/auth/callback`, Site URL `https://flashcards.com.br`. (Provavelmente parcialmente configurado pra produção legada — revisar e completar.)
-4. ⏳ **GitHub Integration**: re-point do repo legado `sparkle-study-scape` pra `Rako56/flashcards` em Dashboard → Settings → Integrations → GitHub.
-5. ⏳ **Branching**: Dashboard → Branches → Enable Branching (Pro feature, provavelmente OFF).
+**Resolvidos 2026-05-26 (API):**
 
-Quando 5 itens completos, eu executo Tasks 2-5 do Plan 1.6 (install CLI + link + `supabase db pull` + 4 lib client files + tests + PR).
+1. ✅ **SUPABASE_ACCESS_TOKEN** — Rafael gerou + setei via `gh secret set` (token rotacionar depois — token apareceu em transcript).
+2. ✅ **SUPABASE_SERVICE_ROLE_KEY** — fetchado via `GET /v1/projects/{ref}/api-keys?reveal=true` (JWT 219 chars) e pipado direto pro `gh secret set` sem expor no log. Setado em GitHub Secrets.
+3. ✅ **Auth Settings** — `PATCH /v1/projects/{ref}/config/auth`: `password_hibp_enabled: true`, `password_min_length: 10`, `uri_allow_list` adicionou `https://*.flashcards.com.br/**` (wildcard subdomain pra multi-tenant) + `http://localhost:3000/**` (Next.js dev). Mantidos `https://flashcards.com.br/**`, `https://www.flashcards.com.br/**`, `http://localhost:8080/**`. Removido `sparkle-study-scape.vercel.app/**` (dead URL).
+
+**Pendente manual:**
+
+4. ⏳ **GitHub Integration repointing** — UI only (Management API não expõe). Rafael acessa Dashboard → Settings → Integrations → GitHub → conecta repo `Rako56/flashcards` (desconecta o antigo `sparkle-study-scape` se ainda estiver). Necessário pra Supabase Branching funcionar (auto-criação de branch DB por PR).
+
+**Não bloqueia execução:**
+
+5. ✅ **Branching** — `GET /v1/projects/{ref}/branches` retorna `[]` (Pro tier suporta, primeira branch será criada automaticamente quando GH Integration + PR with schema change disparar). Sem ação imediata necessária.
+
+**Achados adicionais documentados nesta sessão:**
+
+- ⚠️ **Region: `us-west-2`** (Oregon, EUA) — Plan 1.6 spec esperava `sa-east-1` (São Paulo). Latência adicional ~150-200ms pros usuários BR. Migrar de região = downtime + dump/restore. **Decisão pendente Rafael**: aceitar latência atual ou migrar pra sa-east-1 antes de Plan 1.6 execução. (Default sugerido: aceitar — perda de ~150ms é pequena vs custo de migração agora.)
+- ✅ **PostgreSQL 17.6.1** (versão moderna, sem upgrade necessário).
+- ✅ **5 extensions críticas habilitadas** (uuid-ossp, pgcrypto, pg_cron, pg_net, pg_stat_statements). Nada a fazer.
+
+Quando Rafael completar GitHub Integration repointing (~3 min), eu executo Tasks 2-5 do Plan 1.6 (install CLI + link + `supabase db pull` + 4 lib client files + tests + PR).
 
 **ADICIONAL — divergência de estrutura encontrada:** Plan 1.6 PLAN.md original referencia paths `flashcards/lib/supabase/*` (assume monorepo com subdir `flashcards/`). Mas o repo após reset é flat (`app/`, `lib/` na raiz, sem subdir `flashcards/`). Durante execução do Plan 1.6, paths devem ser ajustados pra `lib/supabase/*` direto. Não bloqueia agora; resolve quando executar.
 
