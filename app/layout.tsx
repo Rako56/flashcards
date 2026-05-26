@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
 import type { ReactNode } from 'react'
+
+import { getThemeBySlug, themeToCssVars } from '@/lib/concurso/theme'
 
 import { Providers } from './providers'
 import './globals.css'
@@ -19,9 +22,26 @@ export const metadata: Metadata = {
   description: 'Marketplace de preparações curadas para concursos públicos brasileiros.',
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Read the concurso slug injected by middleware.ts. Used to override
+  // brand CSS variables inline below — no FOUC because the override is
+  // rendered server-side before any paint.
+  const headerStore = await headers()
+  const slug = headerStore.get('x-concurso-slug')
+  const theme = getThemeBySlug(slug)
+  const cssVars = themeToCssVars(theme)
+
   return (
     <html lang="pt-BR" className={inter.variable}>
+      <head>
+        {/*
+         * Per-concurso theme override. Injecting a :root style block
+         * here (server-side) wins over the globals.css defaults without
+         * any hydration flicker. The block is small and gzip-friendly
+         * (one rule per concurso visit).
+         */}
+        <style dangerouslySetInnerHTML={{ __html: `:root { ${cssVars} }` }} />
+      </head>
       <body className="font-sans">
         <Providers>{children}</Providers>
       </body>
