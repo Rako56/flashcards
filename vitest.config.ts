@@ -53,6 +53,8 @@ export default defineConfig({
         'app/**/twitter-image.tsx',
         'app/**/icon.tsx',
         'app/**/apple-icon.tsx',
+        'app/**/actions.ts', // Server Actions — integration-tested via E2E (need real DB + session)
+        'app/**/*-form.tsx', // 'use client' forms paired with the actions above
         'app/providers.tsx', // 'use client' shadcn-style wrapper; integration-tested via E2E in Plan 1.4
         'lib/env.ts', // env() validator tested separately; module-cache mocking confuses V8 line counts
       ],
