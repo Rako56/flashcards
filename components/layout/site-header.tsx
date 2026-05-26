@@ -44,6 +44,12 @@ export async function SiteHeader() {
                 Estudar
               </Link>
               <Link
+                href="/simulado"
+                className="text-foreground/70 transition-colors hover:text-foreground"
+              >
+                Simulados
+              </Link>
+              <Link
                 href="/erros"
                 className="text-foreground/70 transition-colors hover:text-foreground"
               >
