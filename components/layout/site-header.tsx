@@ -1,0 +1,77 @@
+import Link from 'next/link'
+
+import { Button } from '@/components/ui/button'
+import { logoutAction } from '@/app/auth/actions'
+import { getCurrentUser } from '@/lib/access/get-current-user'
+import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
+
+/**
+ * Top navigation. Server Component — reads user + concurso server-side.
+ *
+ * Behavior:
+ *  - Logo links to / (apex) or current concurso landing
+ *  - If concurso resolved + user logged in: shows "Estudar" + "Caderno"
+ *  - User menu (right): "Entrar"/"Criar conta" OR "Sair" form
+ *  - On apex (no concurso): no product nav, only logo + auth CTAs
+ */
+export async function SiteHeader() {
+  const concurso = await getConcursoFromHeaders()
+  const user = await getCurrentUser()
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="font-semibold tracking-tight text-foreground hover:text-brand-primary"
+          >
+            Flashcards
+            {concurso ? (
+              <span className="ml-2 text-xs font-normal text-foreground/50">· {concurso.slug}</span>
+            ) : null}
+          </Link>
+
+          {concurso && user ? (
+            <nav className="flex items-center gap-4 text-sm">
+              <Link
+                href="/study"
+                className="text-foreground/70 transition-colors hover:text-foreground"
+              >
+                Estudar
+              </Link>
+              <Link
+                href="/erros"
+                className="text-foreground/70 transition-colors hover:text-foreground"
+              >
+                Caderno
+              </Link>
+            </nav>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-3 text-sm">
+          {user ? (
+            <>
+              <span className="hidden text-foreground/60 sm:inline">{user.email}</span>
+              <form action={logoutAction}>
+                <Button type="submit" variant="ghost" size="sm">
+                  Sair
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Criar conta</Link>
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  )
+}

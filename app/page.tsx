@@ -2,7 +2,6 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { PrepPaywall } from '@/components/paywall/prep-paywall'
-import { logoutAction } from '@/app/auth/actions'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
@@ -78,11 +77,6 @@ export default async function HomePage() {
           <Link href="/erros">Caderno de erros</Link>
         </Button>
       </div>
-      <form action={logoutAction}>
-        <Button type="submit" variant="ghost" size="sm">
-          Sair
-        </Button>
-      </form>
     </main>
   )
 }
