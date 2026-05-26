@@ -27,6 +27,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getCorrelationId, withCorrelationHeader } from '@/lib/observability/correlation'
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
+import { verifyAsaasSignature } from '@/lib/asaas/signature'
 import {
   parseExternalReference,
   type AsaasWebhookEventType,
@@ -42,19 +43,26 @@ export async function POST(request: NextRequest) {
   const correlationId = getCorrelationId(request)
   const log = childLogger({ correlationId, route: '/api/webhooks/asaas' })
 
-  // Phase 4.2 will verify the signature header against ASAAS_WEBHOOK_TOKEN.
-  // For now, we accept any POST (development/sandbox only — production
-  // MUST gate on signature before Plan 4 closes).
-  const sharedToken = process.env['ASAAS_WEBHOOK_TOKEN']
-  if (sharedToken) {
-    const headerToken = request.headers.get('asaas-access-token')
-    if (headerToken !== sharedToken) {
-      log.warn('webhook signature mismatch')
+  // Signature verification — timing-safe + production fail-closed.
+  // See lib/asaas/signature.ts for the policy layers.
+  const verdict = verifyAsaasSignature({
+    headerToken: request.headers.get('asaas-access-token'),
+    envToken: process.env['ASAAS_WEBHOOK_TOKEN'],
+    nodeEnv: process.env.NODE_ENV,
+  })
+  if (!verdict.ok) {
+    if (verdict.reason === 'missing-env-prod') {
+      log.error('ASAAS_WEBHOOK_TOKEN is required in production — refusing webhook')
       return withCorrelationHeader(
-        Response.json({ ok: false, error: 'invalid signature' }, { status: 401 }),
+        Response.json({ ok: false, error: 'service misconfigured' }, { status: 503 }),
         correlationId,
       )
     }
+    log.warn('webhook signature mismatch')
+    return withCorrelationHeader(
+      Response.json({ ok: false, error: 'invalid signature' }, { status: 401 }),
+      correlationId,
+    )
   }
 
   let raw: unknown
