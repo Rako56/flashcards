@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { Wordmark } from '@/components/brand/wordmark'
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/app/auth/actions'
 import { getCurrentUser } from '@/lib/access/get-current-user'
@@ -27,12 +28,15 @@ export async function SiteHeader() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="font-semibold tracking-tight text-foreground hover:text-brand-primary"
+            className="text-foreground transition-colors hover:text-brand-primary"
+            aria-label={concurso ? `Flashcards — ${concurso.slug}` : 'Flashcards'}
           >
-            Flashcards
-            {concurso ? (
-              <span className="ml-2 text-xs font-normal text-foreground/50">· {concurso.slug}</span>
-            ) : null}
+            <span className="inline-flex items-baseline gap-2">
+              <Wordmark size="md" />
+              {concurso ? (
+                <span className="text-xs font-normal text-foreground/50">· {concurso.slug}</span>
+              ) : null}
+            </span>
           </Link>
 
           {concurso && user ? (
