@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { createClient } from '@/lib/supabase/server'
@@ -29,6 +30,13 @@ export default async function ProfileSettingsPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 px-6 py-10">
+      <Breadcrumb
+        items={[
+          { name: 'Início', href: '/' },
+          { name: 'Conta', href: '/settings/account' },
+          { name: 'Perfil' },
+        ]}
+      />
       <header className="flex items-baseline justify-between gap-4">
         <h1 className="text-2xl font-semibold">Perfil</h1>
         <Button asChild variant="outline" size="sm">

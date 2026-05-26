@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
 
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
@@ -53,6 +54,13 @@ export default async function SimuladoDetailPage({ params }: { params: Promise<{
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
+      <Breadcrumb
+        items={[
+          { name: 'Início', href: '/' },
+          { name: 'Simulados', href: '/simulado' },
+          { name: simulado.title },
+        ]}
+      />
       <header className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
           <Button asChild variant="outline" size="sm">

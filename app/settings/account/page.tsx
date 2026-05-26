@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 
@@ -24,6 +25,7 @@ export default async function AccountSettingsPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 px-6 py-10">
+      <Breadcrumb items={[{ name: 'Início', href: '/' }, { name: 'Conta' }]} />
       <header className="flex items-baseline justify-between gap-4">
         <h1 className="text-2xl font-semibold">Sua conta</h1>
         <Button asChild variant="outline" size="sm">
