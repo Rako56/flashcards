@@ -23,6 +23,11 @@ export async function ensureAsaasCustomer(
 ): Promise<EnsureCustomerResult> {
   const log = childLogger({ correlationId, action: 'ensureAsaasCustomer', userId })
 
+  if (!userId) {
+    log.warn('empty userId — refusing to create customer')
+    return { customerId: null, cached: false }
+  }
+
   const supabase = await createClient()
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
