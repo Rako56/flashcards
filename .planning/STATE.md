@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 1 of 10 (Foundation)
-Plan: 7-8 of 13 (Plans 1.7 PARTIAL + 1.8 AUDIT — clear board de decisões greenfield-vs-reuse pra todos os schema plans)
-Status: Plans 1.7 + 1.8 audited; ambos eram greenfield-impossible (production schema already exists with 236 migrations). Plan 1.7 entregou F-001 (function_search_path hardening, zero-risk). Plan 1.8 não aplicou nenhuma DDL — só documentou inventário (7/14 tabelas exist, 7/14 MISSING) e quebrou em sub-plans 1.8-A/B/C/D priorizados. F-002..F-008 (Plan 1.7 deferred) + Plans 1.8-A/B/C/D continuam pendentes — cada um precisa análise de impacto ou decisão arquitetural antes de aplicar.
-Last activity: 2026-05-26 — Plan 1.8 audit. Findings: webhook_events (🔴 Phase 4 blocker), simulado_runs/answers (🟠 Phase 9 — current simulados denormalized), LGPD tables (🟡 audit_log/legal_audit_log/lgpd_deletion_requests — compliance pre-launch), xp_events (🟢 opcional). Function naming decision: keep legacy convention (no `fn_*` prefix); don't rename existing. AUDIT.md tem 4 sub-plan recommendations com estimativas.
+Plan: 7-8 of 13 (Plans 1.7 PARTIAL + 1.8 AUDIT + 1.8-A DONE — webhook idempotency live)
+Status: Plan 1.8-A shipped (PR #24, commit 9b0a0e5) — `webhook_events` table + `process_webhook_event(p_event_id, p_event_type, p_payload)` function. Idempotent INSERT ON CONFLICT pattern; returns `was_new` boolean. SECURITY DEFINER with `SET search_path = public, pg_temp` + REVOKE FROM PUBLIC / GRANT TO service_role (zero-anon-exposure pattern, opposite of legacy SECURITY DEFINER funcs flagged in Plan 1.7 audit). Smoke-tested idempotency on live remote (first call was_new=true, second was_new=false). Types regenerated (+36 lines for new table+function). Phase 4 blocker resolved.
+Last activity: 2026-05-26 — Plan 1.8-A. Bug encountered + fixed mid-apply: PL/pgSQL ambiguity 42702 when OUT column name `event_id` matches INSERT target column. Renamed OUT to `returned_event_id`; documented in migration comment for future readers.
 
-Progress: [██████░░░░] 58% (Phase 1: 6 of 13 plans done + 1.7 partial + 1.8 audit; ainda faltam 5 plans + sub-plans 1.7-A/1.8-A/1.8-B/1.8-C/1.8-D)
+Progress: [██████░░░░] 62% (Phase 1: 6 of 13 plans done + 1.7 partial + 1.8 partial + 1.8-A done; ainda faltam 1.7-A, 1.8-B, 1.8-C, 1.8-D + Plans 1.9-1.13)
 
 ## Performance Metrics
 
@@ -128,12 +128,12 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-26 (late evening — long session)
-Stopped at: Plans 1.7 PARTIAL + 1.8 AUDIT done. Greenfield-vs-reuse decisions board cleared for ALL schema plans. Phase 1 at 6/13 done + 1.7 partial + 1.8 audit (~58%). Next action options:
-  (a) Plan 1.8-A: webhook_events + process_webhook_event (🔴 CRITICAL Phase 4 blocker — webhook idempotency is essential before Asaas integration)
-  (b) Plan 1.7-A: F-002 (REVOKE anon SECURITY DEFINER × 23) — requires mapping which legacy app flows depend on those functions; medium-high effort
-  (c) Plan 1.11 (Pino structured logging) — pure code, no schema risk, can run in parallel with anything
-  (d) Plan 1.10 (Sentry) — requires you to create Sentry account + project; blocked on user setup
-  (e) Plan 1.8-C: LGPD tables (audit_log + legal_audit_log + lgpd_deletion_requests) — blocks public launch but not immediate
-Recommended: option (a) — webhook_events tem o highest leverage (destrava todo Phase 4) e o trabalho é bounded (~30-60 min). Depois pode atacar (c) Pino com foco.
-Resume files: `.planning/phases/01-foundation/01-07-AUDIT.md` + `01-08-AUDIT.md` (audits) + `.planning/STATE.md` (this file).
+Last session: 2026-05-26 (very long session — entered madrugada)
+Stopped at: Plan 1.8-A shipped. Webhook idempotency live in production. 17 commits in main today. Phase 1 at ~62%. Next action options:
+  (a) Plan 1.8-C: LGPD tables (audit_log + legal_audit_log + lgpd_deletion_requests) — pre-launch compliance blocker; 60-90 min; follows the same pattern as Plan 1.8-A
+  (b) Plan 1.7-A: F-002 (REVOKE anon SECURITY DEFINER × 23) — requires mapping which legacy app flows use each function; need codebase grep + maybe Cowork team coordination
+  (c) Plan 1.11 (Pino structured logging) — pure code, no schema risk; standalone PR
+  (d) Plan 1.10 (Sentry) — requires you to create Sentry account + project
+  (e) Plan 1.8-B: simulado normalize decision — architectural call needed (refactor existing `simulados` to runs+answers OR keep denormalized)
+Recommended next session: (c) Plan 1.11 Pino — clean code-only work after a long DB-heavy session is mental refresh; runs in parallel with anything else.
+Resume files: `.planning/phases/01-foundation/01-07-AUDIT.md` + `01-08-AUDIT.md` (gap inventory) + `.planning/STATE.md` (this file).
