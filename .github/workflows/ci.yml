@@ -183,10 +183,17 @@ jobs:
   # --- Supabase-lint: lints supabase/migrations/*.sql against the linked project. -
   # ACTIVE since Plan 1.9 (2026-05-26) — Plans 1.7 F-001 + 1.8-A shipped the
   # first migrations (search_path fix + webhook_events).
+  #
+  # ONLY runs on push to main — the `supabase/setup-cli@v1` action makes an
+  # unauthenticated GitHub releases API call (60 req/hour anonymous quota
+  # shared across the runner subnet). Multiple parallel PR CI runs blow
+  # through that quota and surface as "rate limit exceeded" in 6s, which
+  # is misleading (the migrations themselves are fine). Restricting the
+  # lint to main-push gives us coverage on landed commits + zero PR noise.
   supabase-lint:
     name: supabase-lint
     needs: install
-    if: true
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
