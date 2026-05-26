@@ -92,29 +92,34 @@ function SimuladoRow({ simulado }: { simulado: SimuladoSummary }) {
   const created = formatDate(simulado.created_at)
 
   return (
-    <li className="rounded-md border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <StatusBadge status={simulado.status} />
-            <span className="text-xs text-foreground/50">{created}</span>
+    <li>
+      <Link
+        href={`/simulado/${simulado.id}`}
+        className="block rounded-md border border-border bg-card p-5 shadow-sm transition-colors hover:border-foreground/30"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <StatusBadge status={simulado.status} />
+              <span className="text-xs text-foreground/50">{created}</span>
+            </div>
+            <h2 className="mt-2 text-base font-medium leading-snug text-foreground/90">
+              {simulado.title}
+            </h2>
+            {simulado.description ? (
+              <p className="mt-1 text-sm text-foreground/60">{simulado.description}</p>
+            ) : null}
           </div>
-          <h2 className="mt-2 text-base font-medium leading-snug text-foreground/90">
-            {simulado.title}
-          </h2>
-          {simulado.description ? (
-            <p className="mt-1 text-sm text-foreground/60">{simulado.description}</p>
-          ) : null}
-        </div>
-        <div className="shrink-0 text-right">
-          <div className="text-xs uppercase tracking-wider text-foreground/50">acertos</div>
-          <div className="mt-0.5 text-lg font-semibold tabular-nums text-foreground/90">
-            {correct}
-            <span className="text-sm font-normal text-foreground/50">/{total}</span>
+          <div className="shrink-0 text-right">
+            <div className="text-xs uppercase tracking-wider text-foreground/50">acertos</div>
+            <div className="mt-0.5 text-lg font-semibold tabular-nums text-foreground/90">
+              {correct}
+              <span className="text-sm font-normal text-foreground/50">/{total}</span>
+            </div>
+            {answered > 0 ? <div className="text-xs text-foreground/50">{pct}%</div> : null}
           </div>
-          {answered > 0 ? <div className="text-xs text-foreground/50">{pct}%</div> : null}
         </div>
-      </div>
+      </Link>
     </li>
   )
 }
