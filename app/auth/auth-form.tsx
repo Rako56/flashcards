@@ -47,6 +47,15 @@ export function AuthForm({ action, mode, altHref, altLabel }: AuthFormProps) {
       <div className="mx-auto w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
         <h1 className="text-xl font-semibold">Quase lá!</h1>
         <p className="mt-3 text-sm text-foreground/80">{state.message}</p>
+        <p className="mt-3 text-xs text-foreground/60">
+          Não recebeu o e-mail?{' '}
+          <Link
+            href="/auth/confirmar-email"
+            className="font-medium text-brand-primary hover:underline"
+          >
+            Reenviar link
+          </Link>
+        </p>
         <Link
           href="/login"
           className="mt-6 inline-block text-sm font-medium text-brand-primary hover:underline"

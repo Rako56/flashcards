@@ -164,7 +164,7 @@ function friendlyAuthError(message: string): string {
     return 'Esse e-mail já está cadastrado. Tente fazer login.'
   }
   if (lower.includes('email not confirmed')) {
-    return 'Confirme o e-mail antes de fazer login. Verifique sua caixa de entrada.'
+    return 'Confirme o e-mail antes de fazer login. Reenvie o link em /auth/confirmar-email se não recebeu.'
   }
   if (lower.includes('password') && lower.includes('weak')) {
     return 'Senha muito fraca. Use uma combinação mais segura (não vazada em incidentes públicos).'
