@@ -37,6 +37,18 @@ export default async function AccountSettingsPage() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Perfil</h2>
+        <p className="mt-2 text-sm text-foreground/70">
+          Edite seu nome completo e CPF — usados para faturamento.
+        </p>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/settings/profile">Editar perfil</Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Segurança</h2>
         <p className="mt-2 text-sm text-foreground/70">
           Mantenha sua senha forte e única. Senhas vazadas em incidentes públicos são rejeitadas
