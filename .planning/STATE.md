@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 1 of 10 (Foundation)
-Plan: 7 of 13 (Plan 1.7 PARTIAL — F-001 done, FOUND-11 marked partial; F-002-008 deferred)
-Status: Plan 1.7 reescrito de "greenfield create 5 migrations" pra "audit + harden existing schema" pois projeto Supabase reusado já tem 236 migrations + production data. `01-07-AUDIT.md` inventariou 33 tabelas + 51 security advisors + 102 performance advisors. F-001 aplicado (`function_search_path_mutable` em `refund_requests_set_updated_at` — pure hardening, zero risk). Verified: advisor count went 51→49 (também caiu cache de `auth_leaked_password_protection`). F-002 (REVOKE anon SECURITY DEFINER × 23) + F-003 (tighten refund_requests RLS) + F-004 (restrict bucket listing) DEFERIDOS — cada um precisa análise de impacto vs app legado. PR #21 squash-merged como `493e171`.
-Last activity: 2026-05-26 — Plan 1.7 audit + F-001 hardening. CI investigation: PRs #15-#18 NÃO triggered devido a outage intermitente do GitHub codeload (mesmo erro do Dependabot run); empirically confirmed via probe PR #20 que CI dispara, mas install job falha em download. Workaround: admin merge bypass. PR de feat de código real (Plan 1.6 #18) deve disparar CI normal quando codeload recuperar.
+Plan: 7-8 of 13 (Plans 1.7 PARTIAL + 1.8 AUDIT — clear board de decisões greenfield-vs-reuse pra todos os schema plans)
+Status: Plans 1.7 + 1.8 audited; ambos eram greenfield-impossible (production schema already exists with 236 migrations). Plan 1.7 entregou F-001 (function_search_path hardening, zero-risk). Plan 1.8 não aplicou nenhuma DDL — só documentou inventário (7/14 tabelas exist, 7/14 MISSING) e quebrou em sub-plans 1.8-A/B/C/D priorizados. F-002..F-008 (Plan 1.7 deferred) + Plans 1.8-A/B/C/D continuam pendentes — cada um precisa análise de impacto ou decisão arquitetural antes de aplicar.
+Last activity: 2026-05-26 — Plan 1.8 audit. Findings: webhook_events (🔴 Phase 4 blocker), simulado_runs/answers (🟠 Phase 9 — current simulados denormalized), LGPD tables (🟡 audit_log/legal_audit_log/lgpd_deletion_requests — compliance pre-launch), xp_events (🟢 opcional). Function naming decision: keep legacy convention (no `fn_*` prefix); don't rename existing. AUDIT.md tem 4 sub-plan recommendations com estimativas.
 
-Progress: [█████░░░░░] 54% (Phase 1: 6 of 13 plans done + Plan 1.7 partial)
+Progress: [██████░░░░] 58% (Phase 1: 6 of 13 plans done + 1.7 partial + 1.8 audit; ainda faltam 5 plans + sub-plans 1.7-A/1.8-A/1.8-B/1.8-C/1.8-D)
 
 ## Performance Metrics
 
@@ -129,10 +129,11 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-05-26 (late evening — long session)
-Stopped at: Plan 1.7 PARTIAL — audit + F-001 done; F-002 through F-008 deferred (each needs legacy app impact analysis before apply). Phase 1 at 6/13 done + Plan 1.7 partial (~54%). Next action options:
-  (a) Plan 1.8 audit (same pattern — second-half schema is also already in production; expect to write `01-08-AUDIT.md` and similar deferral list)
-  (b) Plan 1.7-A continuation: F-002 (REVOKE anon SECURITY DEFINER × 23) — requires mapping which legacy app flows depend on those functions
-  (c) Plan 1.11 (Pino structured logging) — pure code, no schema risk
-  (d) Plan 1.10 (Sentry) — requires you to create Sentry account + project
-Recommended: option (a) audits Plan 1.8 quickly to clear the greenfield-vs-reuse decisions board, then attack F-002 or Plan 1.11 with focus.
-Resume file: `.planning/phases/01-foundation/01-07-AUDIT.md` (full security + performance audit) + `.planning/STATE.md` (this file).
+Stopped at: Plans 1.7 PARTIAL + 1.8 AUDIT done. Greenfield-vs-reuse decisions board cleared for ALL schema plans. Phase 1 at 6/13 done + 1.7 partial + 1.8 audit (~58%). Next action options:
+  (a) Plan 1.8-A: webhook_events + process_webhook_event (🔴 CRITICAL Phase 4 blocker — webhook idempotency is essential before Asaas integration)
+  (b) Plan 1.7-A: F-002 (REVOKE anon SECURITY DEFINER × 23) — requires mapping which legacy app flows depend on those functions; medium-high effort
+  (c) Plan 1.11 (Pino structured logging) — pure code, no schema risk, can run in parallel with anything
+  (d) Plan 1.10 (Sentry) — requires you to create Sentry account + project; blocked on user setup
+  (e) Plan 1.8-C: LGPD tables (audit_log + legal_audit_log + lgpd_deletion_requests) — blocks public launch but not immediate
+Recommended: option (a) — webhook_events tem o highest leverage (destrava todo Phase 4) e o trabalho é bounded (~30-60 min). Depois pode atacar (c) Pino com foco.
+Resume files: `.planning/phases/01-foundation/01-07-AUDIT.md` + `01-08-AUDIT.md` (audits) + `.planning/STATE.md` (this file).
