@@ -21,6 +21,12 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "db:link": "supabase link --project-ref $SUPABASE_PROJECT_ID",
+    "db:push": "supabase db push --linked",
+    "db:diff": "supabase db diff --linked",
+    "db:reset": "supabase db reset --linked",
+    "db:lint": "supabase db lint --linked",
+    "types:gen": "supabase gen types typescript --linked > types/database.types.ts && prettier --write types/database.types.ts",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -34,12 +40,15 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@supabase/ssr": "0.10.3",
+    "@supabase/supabase-js": "2.106.1",
     "@tanstack/react-query": "^5.100.11",
     "clsx": "^2.1.1",
     "next": "15.5.18",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.76.0",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.6.0",
     "zod": "^3.25.76"
   },
@@ -67,6 +76,7 @@
     "postcss": "^8.5.15",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6",
+    "supabase": "^2.101.0",
     "tailwindcss": "3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.7.3",
