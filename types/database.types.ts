@@ -579,6 +579,45 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          correlation_id: string | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       card_reports: {
         Row: {
           card_id: string
@@ -837,6 +876,75 @@ export type Database = {
           title?: string
           track_type?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      legal_audit_log: {
+        Row: {
+          acting_role: string
+          acting_user_id: string | null
+          data_subject_id: string | null
+          event_type: string
+          id: string
+          legal_basis: string | null
+          metadata: Json
+          recorded_at: string
+        }
+        Insert: {
+          acting_role: string
+          acting_user_id?: string | null
+          data_subject_id?: string | null
+          event_type: string
+          id?: string
+          legal_basis?: string | null
+          metadata?: Json
+          recorded_at?: string
+        }
+        Update: {
+          acting_role?: string
+          acting_user_id?: string | null
+          data_subject_id?: string | null
+          event_type?: string
+          id?: string
+          legal_basis?: string | null
+          metadata?: Json
+          recorded_at?: string
+        }
+        Relationships: []
+      }
+      lgpd_deletion_requests: {
+        Row: {
+          completed_at: string | null
+          confirmation_token: string | null
+          confirmed_at: string | null
+          id: string
+          processing_notes: string | null
+          reason: string | null
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          id?: string
+          processing_notes?: string | null
+          reason?: string | null
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          id?: string
+          processing_notes?: string | null
+          reason?: string | null
+          requested_at?: string
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -1939,6 +2047,7 @@ export type Database = {
         Args: { p_card_id: string; p_source: string }
         Returns: Json
       }
+      delete_user_cascade: { Args: { p_user_id: string }; Returns: Json }
       ensure_flash_balance: {
         Args: { p_allowance?: number }
         Returns: {
