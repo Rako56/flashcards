@@ -9,17 +9,17 @@ Aluno paga R$ 297/ano por uma preparação e recebe flashcards prontos feitos à
 | Camada                                                                                   | Estado  |
 | ---------------------------------------------------------------------------------------- | ------- |
 | Foundation (CI, observability, security, timing-safe webhook)                            | ✅ 100% |
-| Multi-tenant subdomain routing                                                           | ✅ 95%  |
+| Multi-tenant subdomain routing (+ integration test do full chain)                        | ✅ 100% |
 | Auth (signup, login, OAuth Google, password recovery, LGPD deletion)                     | ✅ 100% |
 | Pagamento (Asaas checkout + webhook + access grant + self-serve refund + admin triage)   | ✅ 100% |
 | SRS (FSRS-5 + streak/XP + last-card bonus + leaderboard)                                 | ✅ 100% |
 | Caderno de erros (listagem + filtros + revisar todos + dominei + dominei todos)          | ✅ 100% |
-| Visual identity (wordmark + favicon + brand tokens; logo final pendente)                 | 50%     |
+| Visual identity (wordmark + favicon + brand tokens + Fraunces display; logo pendente)    | 80%     |
 | Admin (read-only + status toggles + /admin/webhooks + /admin/audit-log + /admin/refunds) | ✅ 100% |
 | Simulado (listing + create + detail + runner interativo + gabarito + refazer)            | ✅ 100% |
 | SEO (robots, sitemap, OG dinâmico, JSON-LD, breadcrumbs, noindex, analytics)             | ✅ 100% |
 
-110 PRs entregues. **9 das 10 camadas em 100%.** Único gap remanescente: Visual (50%) — bloqueado em logo final do designer (drop-in em `components/brand/wordmark.tsx`). Falta apenas (a) logo final do designer e (b) configuração operacional (env vars, DNS, Asaas API key) pra ligar a venda.
+113 PRs entregues. **9 das 10 camadas em 100%, Visual em 80%.** Tudo o que dependia de código está fechado. Falta apenas (a) drop-in do logo final do designer em `components/brand/wordmark.tsx` e (b) configuração operacional (env vars, DNS, Asaas API key) pra ligar a venda.
 
 ## Quickstart
 
