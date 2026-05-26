@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import { headers } from 'next/headers'
 import type { ReactNode } from 'react'
 
+import { SiteFooter } from '@/components/layout/site-footer'
+import { SiteHeader } from '@/components/layout/site-header'
 import { getThemeBySlug, themeToCssVars } from '@/lib/concurso/theme'
 
 import { Providers } from './providers'
@@ -42,8 +44,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
          */}
         <style dangerouslySetInnerHTML={{ __html: `:root { ${cssVars} }` }} />
       </head>
-      <body className="font-sans">
-        <Providers>{children}</Providers>
+      <body className="flex min-h-screen flex-col font-sans">
+        <Providers>
+          <SiteHeader />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+        </Providers>
       </body>
     </html>
   )
