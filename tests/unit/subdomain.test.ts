@@ -120,4 +120,27 @@ describe('resolveSubdomain', () => {
       expect(RESERVED_SUBDOMAINS.has('monitoring')).toBe(true)
     })
   })
+
+  describe('uncovered edge cases (coverage gaps)', () => {
+    it('returns null for `.localhost` with empty slug', () => {
+      // ".localhost" → slug=''; coalesces to null
+      expect(resolveSubdomain('.localhost')).toBeNull()
+    })
+
+    it('respects RESERVED check on multi-level subdomain leftmost label', () => {
+      // www.tjsp.flashcards.com.br → slug='www' (reserved) → null
+      expect(resolveSubdomain('www.tjsp.flashcards.com.br')).toBeNull()
+    })
+
+    it('returns null when only "." precedes rootDomain (empty subdomain)', () => {
+      // ".flashcards.com.br" → subdomain='' which split('.')→[''] → slug=''
+      expect(resolveSubdomain('.flashcards.com.br')).toBeNull()
+    })
+
+    it('respects custom rootDomain even when concurso slug is multi-level', () => {
+      expect(
+        resolveSubdomain('tjsp.staging.example.com', { rootDomain: 'staging.example.com' }),
+      ).toBe('tjsp')
+    })
+  })
 })
