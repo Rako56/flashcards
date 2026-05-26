@@ -49,6 +49,18 @@ export default async function AccountSettingsPage() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Estudo</h2>
+        <p className="mt-2 text-sm text-foreground/70">
+          Meta diária, tamanho da sessão e ritmo de cards novos por dia.
+        </p>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/settings/study">Ajustar preferências</Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Segurança</h2>
         <p className="mt-2 text-sm text-foreground/70">
           Mantenha sua senha forte e única. Senhas vazadas em incidentes públicos são rejeitadas
