@@ -36,6 +36,19 @@ export default async function AccountSettingsPage() {
         <p className="mt-1 text-base font-medium">{user.email}</p>
       </section>
 
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Segurança</h2>
+        <p className="mt-2 text-sm text-foreground/70">
+          Mantenha sua senha forte e única. Senhas vazadas em incidentes públicos são rejeitadas
+          automaticamente.
+        </p>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/settings/password">Alterar senha</Link>
+          </Button>
+        </div>
+      </section>
+
       <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-6">
         <h2 className="text-lg font-semibold text-destructive">Zona de risco</h2>
         <p className="mt-2 text-sm text-foreground/80">
