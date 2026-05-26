@@ -2,13 +2,14 @@
 phase: 1
 plan: 05
 title: GitHub Actions CI + CODEOWNERS + PR template + Dependabot
-status: halted-at-checkpoint
-completed_at: pending-rafael-auth-gate
-commit_local: 83dce3a
-commit_pushed: blocked-pat-missing-workflow-scope
+status: completed
+completed_at: 2026-05-26
+commit_local: 83dce3a (subsequent: 50b58db cheatsheet + 7abdcb3 cleanup + task 5 docs)
+commit_pushed: yes (via gh auth login HTTPS, post-2026-05-26 resolution)
 requirements: [FOUND-07]
-tasks_done: [1, 2, 3-local]
-tasks_pending: [3-push, 4, 5]
+tasks_done: [1, 2, 3-local, 3-push, 4, 5]
+tasks_pending: []
+probe_results: 01-05-TASK-5-PROBE.md
 provides:
   - "CI workflow (.github/workflows/ci.yml) — 10 jobs: install, lint, format, typecheck, test, build (all gating) + types-fresh, supabase-lint, e2e-gate, e2e (auto-skip until owning plans land)"
   - "CODEOWNERS — @Rako56 required reviewer on money/correctness paths (lib/srs, lib/queue, lib/asaas, lib/access, supabase/migrations, app/api/{asaas,healthz}, workflows, planning docs)"
@@ -49,10 +50,10 @@ Per RESEARCH.md Pattern 4 + VALIDATION.md FOUND-07: every PR runs lint → typec
 |---|------|--------|-------|
 | 1 | Write `.github/workflows/ci.yml` (10 jobs) | DONE | 271 lines, all `@v4` actions, concurrency cancellation, skip guards on 3 future-plan jobs (types-fresh / supabase-lint / e2e via e2e-gate) |
 | 2 | Write CODEOWNERS + PR template + dependabot.yml | DONE | 4 files total (38 + 42 + 73 lines respectively). PR template covers pre-merge checklist + anti-features check |
-| 3a | Commit Plan 1.5 changes | DONE | Commit `83dce3a` (4 files, 424 insertions, 0 deletions). Pre-commit hooks ran clean (lint-staged formatted 3 yml/md files; typecheck passed). |
-| 3b | Push to `origin/main` | **BLOCKED** | `! [remote rejected] main -> main (refusing to allow a Personal Access Token to create or update workflow .github/workflows/ci.yml without 'workflow' scope)` |
-| 4 | Rafael: 6 placeholder secrets + branch protection rules + workflow permissions | PENDING | Manual GitHub UI work — see "Rafael's Next Steps" below |
-| 5 | Gate-break probe + direct-push rejection probe | PENDING | Blocked by Task 3b and Task 4 |
+| 3a | Commit Plan 1.5 changes | DONE | Commit `83dce3a` (4 files, 424 insertions, 0 deletions). Pre-commit hooks ran clean. |
+| 3b | Push to `origin/main` | **DONE 2026-05-26** | Resolved via `gh auth login` (HTTPS + workflow scope). See STATE.md Decisions § "gh auth login HTTPS preferred over PAT in Credential Manager". |
+| 4 | 6 placeholder secrets + branch protection rules + workflow permissions | **DONE 2026-05-26** | Secrets via `gh secret set` (6 created). Branch protection via UI (with deliberate solo-dev modification: "Do not allow bypassing" UNCHECKED — see STATE.md Decisions § "Solo dev branch protection trade-off"). Workflow permissions via API (`default_workflow_permissions=write`, `can_approve_pull_request_reviews=false`). |
+| 5 | Gate-break probe + direct-push rejection probe | **DONE 2026-05-26** | Results in `01-05-TASK-5-PROBE.md`. Gate-break: PR #12 BLOCKED (4 gates RED, mergeStateStatus=BLOCKED). Direct-push: succeeded via admin bypass with audit log entry. |
 
 ## Acceptance criteria for Tasks 1-2-3a — all green
 
