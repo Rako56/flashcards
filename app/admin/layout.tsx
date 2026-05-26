@@ -66,6 +66,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Webhooks
             </Link>
             <Link
+              href="/admin/audit-log"
+              className="text-foreground/70 transition-colors hover:text-foreground"
+            >
+              Audit log
+            </Link>
+            <Link
               href="/"
               className="text-xs text-foreground/50 transition-colors hover:text-foreground"
             >
