@@ -1822,6 +1822,36 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          payload: Json
+          processed_at: string | null
+          processed_status: string
+          processing_error: string | null
+          received_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          payload: Json
+          processed_at?: string | null
+          processed_status?: string
+          processing_error?: string | null
+          received_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          payload?: Json
+          processed_at?: string | null
+          processed_status?: string
+          processing_error?: string | null
+          received_at?: string
+        }
+        Relationships: []
+      }
       weekly_scores: {
         Row: {
           concurso_id: string | null
@@ -1950,6 +1980,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_webhook_event: {
+        Args: { p_event_id: string; p_event_type: string; p_payload: Json }
+        Returns: {
+          returned_event_id: string
+          was_new: boolean
+        }[]
       }
       refresh_bot_weekly_scores: { Args: never; Returns: undefined }
       reject_audit_suggestion: {
