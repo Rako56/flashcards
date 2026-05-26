@@ -26,6 +26,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { resolveSubdomain } from '@/lib/concurso/subdomain'
+import { CORRELATION_HEADER_NAME, getCorrelationId } from '@/lib/observability/correlation'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
@@ -36,24 +37,32 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? ''
   const slug = resolveSubdomain(host)
 
+  // 3. Compute correlationId early so the same id flows through everything
+  //    (server log lines, Sentry tags, response header, downstream Server
+  //    Components via headers()). Trust upstream if syntactically a UUID.
+  const correlationId = getCorrelationId(request)
+
+  // We rebuild the request headers in every branch (slug or not) because
+  // we always want to propagate x-correlation-id downstream.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set(CORRELATION_HEADER_NAME, correlationId)
   if (slug) {
-    // Propagate to downstream request headers so Server Components +
-    // Route Handlers can read via `headers()` without re-parsing host
-    const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-concurso-slug', slug)
+  }
 
-    // Re-create the response with the augmented request headers.
-    // We must preserve any cookies that `updateSession` set, so we
-    // copy the Set-Cookie headers from the previous response.
-    const newResponse = NextResponse.next({
-      request: { headers: requestHeaders },
-    })
-    response.cookies.getAll().forEach((cookie) => {
-      newResponse.cookies.set(cookie.name, cookie.value, cookie)
-    })
-    response = newResponse
+  // Re-create the response with the augmented request headers. We must
+  // preserve any cookies that `updateSession` set, so we copy them over.
+  const newResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
+  response.cookies.getAll().forEach((cookie) => {
+    newResponse.cookies.set(cookie.name, cookie.value, cookie)
+  })
+  response = newResponse
 
-    // Also expose on the response so client code (or curl) can see it
+  // Expose on the response so client code (or curl) can see them
+  response.headers.set(CORRELATION_HEADER_NAME, correlationId)
+  if (slug) {
     response.headers.set('x-concurso-slug', slug)
   }
 
