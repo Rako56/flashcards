@@ -4,6 +4,24 @@
 
 @layer base {
   :root {
+    /*
+     * Brand tokens (Phase 2 — base palette before per-concurso theming).
+     * --brand-primary etc. are overridden at runtime by the middleware
+     * (or app/(app)/[concurso]/layout.tsx) based on the resolved concurso
+     * row from getConcursoBySlug(). Until then, these are the Flashcards
+     * neutral defaults.
+     *
+     * Values use HSL components (without `hsl()` wrapper) so Tailwind
+     * `hsl(var(--brand-primary))` patterns work consistently.
+     */
+    --brand-primary: 221 83% 53%; /* blue-600 — confident, study-coded */
+    --brand-primary-foreground: 0 0% 100%;
+    --brand-accent: 24 95% 53%; /* orange-500 — warmth, gamification accent */
+    --brand-accent-foreground: 0 0% 100%;
+    --brand-success: 142 71% 45%; /* green-500 — positive feedback */
+    --brand-danger: 0 84% 60%; /* red-500 — destructive, mistake feedback */
+
+    /* shadcn / UI chrome tokens (neutral, paleta principal sober) */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;

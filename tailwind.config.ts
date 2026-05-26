@@ -14,7 +14,28 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        // `--font-sans` is set by next/font Inter in app/layout.tsx.
+        // Fallback stack matches Tailwind defaults so any FOUC frame
+        // before Inter loads still renders sans-serif.
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+      },
       colors: {
+        // Brand tokens — overridden per-concurso by middleware/layout.
+        // Naming aligns with --brand-* CSS vars in globals.css.
+        brand: {
+          primary: {
+            DEFAULT: 'hsl(var(--brand-primary))',
+            foreground: 'hsl(var(--brand-primary-foreground))',
+          },
+          accent: {
+            DEFAULT: 'hsl(var(--brand-accent))',
+            foreground: 'hsl(var(--brand-accent-foreground))',
+          },
+          success: 'hsl(var(--brand-success))',
+          danger: 'hsl(var(--brand-danger))',
+        },
+        // UI chrome tokens (shadcn convention).
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
