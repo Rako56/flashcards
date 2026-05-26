@@ -3,12 +3,14 @@ import { redirect } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { getCurrentUser } from '@/lib/access/get-current-user'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { createClient } from '@/lib/supabase/server'
 
 import { StudyPrefsForm } from './study-prefs-form'
 
 export const metadata = {
   title: 'Preferências de estudo — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

@@ -1,7 +1,10 @@
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
+
 import { ForgotForm } from './forgot-form'
 
 export const metadata = {
   title: 'Esqueci minha senha — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

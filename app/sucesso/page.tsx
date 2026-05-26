@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
 export const metadata = {
   title: 'Pagamento confirmado — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

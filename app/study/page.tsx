@@ -5,12 +5,14 @@ import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { getRecentMistakes } from '@/lib/mistakes/get-recent'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { createClient } from '@/lib/supabase/server'
 
 import { StudySession } from './study-session'
 
 export const metadata = {
   title: 'Estudar — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

@@ -1,7 +1,10 @@
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
+
 import { ResetForm } from './reset-form'
 
 export const metadata = {
   title: 'Redefinir senha — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'
