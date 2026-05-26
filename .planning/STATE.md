@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 1 of 10 (Foundation)
-Plan: 7-8 of 13 (Plans 1.7 PARTIAL + 1.8 AUDIT + 1.8-A DONE — webhook idempotency live)
-Status: Plan 1.8-A shipped (PR #24, commit 9b0a0e5) — `webhook_events` table + `process_webhook_event(p_event_id, p_event_type, p_payload)` function. Idempotent INSERT ON CONFLICT pattern; returns `was_new` boolean. SECURITY DEFINER with `SET search_path = public, pg_temp` + REVOKE FROM PUBLIC / GRANT TO service_role (zero-anon-exposure pattern, opposite of legacy SECURITY DEFINER funcs flagged in Plan 1.7 audit). Smoke-tested idempotency on live remote (first call was_new=true, second was_new=false). Types regenerated (+36 lines for new table+function). Phase 4 blocker resolved.
-Last activity: 2026-05-26 — Plan 1.8-A. Bug encountered + fixed mid-apply: PL/pgSQL ambiguity 42702 when OUT column name `event_id` matches INSERT target column. Renamed OUT to `returned_event_id`; documented in migration comment for future readers.
+Plan: 10-11 of 13 (Plans 1.7 PARTIAL + 1.8 PARTIAL + 1.8-A + 1.8-C + 1.9 + 1.11 PARTIAL done)
+Status: Massive session 2026-05-26 entregou todo o conteúdo de Foundation que NÃO depende de blockers externos (Sentry account, Vercel project). Plans 1.10 + 1.12 + 1.13 blocked on user setup. F-002 (REVOKE anon SECURITY DEFINER × 23) ainda precisa codebase grep mapeando flows legados. F-003 + F-004 documented as ACCEPTED RISKS (CDC compliance + leaderboard UX) with mitigation plans for Phase 4-8. Plan 1.8-B (simulado normalize) precisa decisão arquitetural. Plan 1.8-D (xp_events) opcional.
+Last activity: 2026-05-26 — sequência: Plan 1.9 audit (CI gates types-fresh + supabase-lint ativados) → Plan 1.11 partial (pino logger + correlationId + /api/healthz, 18 novos testes, todos green) → Plan 1.8-C (LGPD scaffolding — 3 tables + delete_user_cascade function) → F-003 + F-004 ACCEPTED RISK documentation.
 
-Progress: [██████░░░░] 62% (Phase 1: 6 of 13 plans done + 1.7 partial + 1.8 partial + 1.8-A done; ainda faltam 1.7-A, 1.8-B, 1.8-C, 1.8-D + Plans 1.9-1.13)
+Progress: [████████░░] 77% (Phase 1: 6 plans done + 1.7 partial + 1.8 partial + 1.8-A + 1.8-C + 1.9 + 1.11 partial = 10/13 effective work units done; 3 plans blocked on user setup)
 
 ## Performance Metrics
 
@@ -128,12 +128,31 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-26 (very long session — entered madrugada)
-Stopped at: Plan 1.8-A shipped. Webhook idempotency live in production. 17 commits in main today. Phase 1 at ~62%. Next action options:
-  (a) Plan 1.8-C: LGPD tables (audit_log + legal_audit_log + lgpd_deletion_requests) — pre-launch compliance blocker; 60-90 min; follows the same pattern as Plan 1.8-A
-  (b) Plan 1.7-A: F-002 (REVOKE anon SECURITY DEFINER × 23) — requires mapping which legacy app flows use each function; need codebase grep + maybe Cowork team coordination
-  (c) Plan 1.11 (Pino structured logging) — pure code, no schema risk; standalone PR
-  (d) Plan 1.10 (Sentry) — requires you to create Sentry account + project
-  (e) Plan 1.8-B: simulado normalize decision — architectural call needed (refactor existing `simulados` to runs+answers OR keep denormalized)
-Recommended next session: (c) Plan 1.11 Pino — clean code-only work after a long DB-heavy session is mental refresh; runs in parallel with anything else.
-Resume files: `.planning/phases/01-foundation/01-07-AUDIT.md` + `01-08-AUDIT.md` (gap inventory) + `.planning/STATE.md` (this file).
+Last session: 2026-05-26 (madrugada extended — extremely productive)
+Stopped at: tudo que era acessível sem blockers externos foi entregue. 22 commits em main hoje. Phase 1 effective work at ~77%. Remaining work falls into 3 buckets:
+
+**Blocked on Rafael (external setup):**
+- Plan 1.10 Sentry — precisa criar conta Sentry + projeto → dois secrets (NEXT_PUBLIC_SENTRY_DSN + SENTRY_AUTH_TOKEN) — depois eu instalo @sentry/nextjs + wire withErrorTracking + complete /api/healthz?simulateError. ~30-60 min.
+- Plan 1.12 Vercel preview deploys — precisa criar Vercel project + linkar GitHub + setar env vars → depois eu wire o vercel.json + GitHub Actions hooks. ~30-60 min.
+- Plan 1.13 E2E smoke tests — depends on 1.12 (Vercel preview URL).
+
+**Blocked on architectural / analysis work (next session):**
+- F-002 Plan 1.7-A — REVOKE anon EXECUTE em 23 SECURITY DEFINER functions. Precisa codebase grep do legado (talvez via backup-sparkle-fixes branch) mapeando quais funcs são chamadas por anon vs authenticated. Estimated: 60-90 min de análise + 30 min de migration.
+- Plan 1.8-B simulado normalize — precisa decisão "refactor `simulados` jsonb → normalized 2-table" OR "keep as-is". Drives Phase 9 design. Estimated: 15 min decision + 1-2h migration if refactor.
+
+**Optional / Phase-8 deferred:**
+- Plan 1.8-D xp_events — Phase 8 gamification redesign call. May not be needed.
+- F-005/F-006/F-007/F-008 — perf optimizations (multiple permissive policies consolidation; unindexed FKs; unused indexes; DB connections strategy). Defer until production load shows pain.
+
+**Phases 2-10 ahead:** weeks of work each. Order per ROADMAP:
+- Phase 2 Design tokens
+- Phase 3 Multi-tenant subdomain routing
+- Phase 4 Pagamento Asaas (needs sandbox creds + Auth pages)
+- Phase 5 Sessão SRS
+- Phase 6 Caderno de erros
+- Phase 7 Identidade visual completa
+- Phase 8 Admin + Curadoria + Cowork ingestion
+- Phase 9 Simulado
+- Phase 10 SEO + funnel analytics
+
+Resume files: `.planning/STATE.md` (this) + `.planning/phases/01-foundation/01-07-AUDIT.md` (Plan 1.7 audit + F-001/F-003-ACCEPTED/F-004-ACCEPTED) + `01-08-AUDIT.md` (Plan 1.8 audit) + `01-08-A-summary` (webhook_events deliverable, see git log).

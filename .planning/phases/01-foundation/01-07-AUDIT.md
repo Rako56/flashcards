@@ -84,9 +84,12 @@ Because every "fix" needs impact analysis against the legacy app's actual call p
   - (c) Admin-only → REVOKE from `anon, authenticated`; gate on `has_role(auth.uid(), 'admin')`
   - Migration per category to minimize blast radius.
 
-- **F-003 Tighten** `refund_requests` INSERT policy — require `auth.uid() = user_id`.
+- **F-003 ACCEPTED RISK** (2026-05-26): `refund_requests` INSERT policy stays permissive. Schema has `user_id NULLABLE` deliberately — CDC art. 49 requires accepting refund requests from any customer including those who cancelled their account / never logged in. Tightening to `auth.uid() = user_id` would break legal compliance.
+  - **Mitigation plan (Phase 4 endpoint creation)**: (a) rate-limit by email + IP (max 1 request per 24h via trigger); (b) reCAPTCHA on the form; (c) anti-spam Edge Function pre-filter. Monitor abuse signals.
 
-- **F-004 Restrict** bucket listings on `avatars` and `notebook-media` — keep individual GET via known URL but block `SELECT *` (enumeration).
+- **F-004 ACCEPTED RISK** (2026-05-26): bucket listings on `avatars` and `notebook-media` stay permissive. Leaderboards + profile UIs need to display avatars of *other* users, requiring SELECT public via PostgREST or Storage URLs. Tightening to owner-only breaks UX.
+  - **Threat reality check**: storage URLs are opaque (signed UUIDs) so direct enumeration via Storage HTTP API is bounded by the signature scheme. The advisor flag is about direct PostgREST query against `storage.objects` table — exploitable only if an attacker has Postgrest access (i.e., a valid anon JWT, which everyone has via the public anon key). Anyone can already list bucket contents via PostgREST.
+  - **Mitigation plan (pre-public-launch)**: (a) move avatar reads to a dedicated server-side endpoint that signs short-lived URLs and only resolves the requested user's avatar; (b) drop the public SELECT policy on `storage.objects` once the endpoint is in place. Deferred until profile/leaderboard pages exist (Phases 6-8).
 
 ### Plan 1.7-B (RLS consolidation)
 
