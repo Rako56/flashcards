@@ -8,7 +8,7 @@ import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { getRecentMistakes, type MistakeReview } from '@/lib/mistakes/get-recent'
 import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
-import { MarkMasteredButton } from './mistake-row-actions'
+import { MarkAllMasteredButton, MarkMasteredButton } from './mistake-row-actions'
 
 export const metadata = {
   title: 'Caderno de erros — Flashcards',
@@ -118,6 +118,12 @@ export default async function MistakesPage({
           active={disciplinaFilter}
           total={allGrouped.length}
         />
+      ) : null}
+
+      {grouped.length > 1 ? (
+        <div className="flex justify-end">
+          <MarkAllMasteredButton cardIds={grouped.map((g) => g.card.card_id)} />
+        </div>
       ) : null}
 
       {grouped.length === 0 ? (
