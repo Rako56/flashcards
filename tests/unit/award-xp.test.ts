@@ -206,6 +206,49 @@ describe('awardXpAndStreak', () => {
     expect(result.newStreak).toBe(1)
   })
 
+  it('session finale doubles the XP delta (good=5 → 10)', async () => {
+    const supabase = makeSupabaseStub({
+      user_gamification: {
+        selectChain: { data: { total_xp: 0 }, error: null },
+        upsertResult: { error: null },
+      },
+      weekly_scores: {
+        selectChain: { data: null, error: null },
+        upsertResult: { error: null },
+      },
+    })
+    const result = await awardXpAndStreak(supabase as any, {
+      ...baseInput,
+      rating: 'good',
+      isSessionFinale: true,
+      now: new Date('2026-05-20T10:00:00Z'),
+    })
+    expect(result.ok).toBe(true)
+    expect(result.xpDelta).toBe(10) // 5 (good) * 2 (finale)
+    expect(result.newTotalXp).toBe(10)
+  })
+
+  it('session finale doubles even when rating=again (1 → 2)', async () => {
+    const supabase = makeSupabaseStub({
+      user_gamification: {
+        selectChain: { data: { total_xp: 0 }, error: null },
+        upsertResult: { error: null },
+      },
+      weekly_scores: {
+        selectChain: { data: null, error: null },
+        upsertResult: { error: null },
+      },
+    })
+    const result = await awardXpAndStreak(supabase as any, {
+      ...baseInput,
+      rating: 'again',
+      isSessionFinale: true,
+      now: new Date('2026-05-20T10:00:00Z'),
+    })
+    expect(result.ok).toBe(true)
+    expect(result.xpDelta).toBe(2)
+  })
+
   it('weekly_scores upsert error returns ok:false', async () => {
     const supabase = makeSupabaseStub({
       user_gamification: {

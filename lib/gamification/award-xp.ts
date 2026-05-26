@@ -41,6 +41,13 @@ export interface AwardXpInput {
   rating: Rating
   correlationId: string
   now?: Date
+  /**
+   * When true, doubles the XP awarded for this review. Used by the
+   * study session UI when the user finishes the last card of the queue
+   * — small celebratory bonus that nudges users to complete sessions.
+   * Streak math is untouched (still bumps once per day).
+   */
+  isSessionFinale?: boolean
 }
 
 export interface AwardXpResult {
@@ -86,9 +93,18 @@ export async function awardXpAndStreak(
   supabase: SupabaseClient<Database>,
   input: AwardXpInput,
 ): Promise<AwardXpResult> {
-  const { userId, concursoId, rating, correlationId, now = new Date() } = input
+  const {
+    userId,
+    concursoId,
+    rating,
+    correlationId,
+    now = new Date(),
+    isSessionFinale = false,
+  } = input
   const log = childLogger({ correlationId, action: 'awardXp', userId })
-  const xpDelta = XP_BY_RATING[rating]
+  const baseDelta = XP_BY_RATING[rating]
+  // Last card of the session → 2x bonus (Sparkle feature parity).
+  const xpDelta = isSessionFinale ? baseDelta * 2 : baseDelta
 
   try {
     // --- user_gamification (lifetime XP) ---

@@ -30,6 +30,7 @@ const RatingSchema = z.enum(['again', 'hard', 'good', 'easy'])
 const RateCardInputSchema = z.object({
   cardId: z.string().uuid('cardId must be a UUID'),
   rating: RatingSchema,
+  isSessionFinale: z.boolean().optional(),
 })
 
 export type RateCardResult = { ok: true; due_at: string } | { ok: false; error: string }
@@ -37,6 +38,7 @@ export type RateCardResult = { ok: true; due_at: string } | { ok: false; error: 
 export async function rateCardAction(input: {
   cardId: string
   rating: Rating
+  isSessionFinale?: boolean
 }): Promise<RateCardResult> {
   const correlationId = crypto.randomUUID()
   const log = childLogger({ correlationId, action: 'rateCard', cardId: input.cardId })
@@ -126,6 +128,7 @@ export async function rateCardAction(input: {
       rating: parsed.data.rating,
       correlationId,
       now,
+      isSessionFinale: parsed.data.isSessionFinale ?? false,
     })
   }
 
