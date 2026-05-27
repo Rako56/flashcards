@@ -24,11 +24,16 @@ const inter = Inter({
 // semibold/bold; `opsz` axis makes large titles look intentional rather
 // than "default Times-on-steroids". Latin subset covers PT-BR diacritics.
 // Tailwind alias: `font-display` via theme.fontFamily.display.
+// `weight: 'variable'` é necessário pra poder declarar `axes`. Quando
+// declaramos uma lista de weights estáticos (['500','600','700']), o
+// Next.js gera arquivos pré-rasterizados e proíbe axes — daí o build
+// quebrava com "Axes can only be defined for variable fonts when the
+// weight property is nonexistent or set to `variable`".
 const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
-  weight: ['500', '600', '700'],
+  weight: 'variable',
   style: ['normal'],
   axes: ['opsz'],
 })
