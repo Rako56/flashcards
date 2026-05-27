@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: concursos } = await supabase
       .from('admin_concursos')
       .select('slug, updated_at')
-      .eq('status', 'active')
+      .eq('status', 'publicado')
       .not('slug', 'is', null)
 
     const concursoEntries: MetadataRoute.Sitemap = (concursos ?? [])

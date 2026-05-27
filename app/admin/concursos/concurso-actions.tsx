@@ -17,9 +17,11 @@ export function ConcursoStatusToggle({
   const [error, setError] = useState<string | null>(null)
   const [optimistic, setOptimistic] = useState(currentStatus)
 
-  const nextStatus = optimistic === 'active' ? 'archived' : 'active'
+  // PT-BR vocab end-to-end. 'rascunho' (draft) and 'arquivado' (archived)
+  // both promote → 'publicado'. 'publicado' demotes → 'arquivado'.
+  const nextStatus = optimistic === 'publicado' ? 'arquivado' : 'publicado'
   const label =
-    optimistic === 'active' ? 'Arquivar' : optimistic === 'archived' ? 'Reativar' : 'Ativar'
+    optimistic === 'publicado' ? 'Arquivar' : optimistic === 'arquivado' ? 'Republicar' : 'Publicar'
 
   function handleClick() {
     if (pending) return
