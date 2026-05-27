@@ -27,8 +27,17 @@ vi.mock('@/lib/observability/logger', () => ({
   }),
 }))
 
+// Sentry capture is invoked on every silent-fallback branch (lesson
+// learned from F-003/F-004: catch→ZERO_STATS hides bugs). Mock the
+// call so the test can assert which branches actually fire Sentry.
+const captureMock = vi.fn()
+vi.mock('@/lib/observability/sentry', () => ({
+  captureWithCorrelation: captureMock,
+}))
+
 beforeEach(() => {
   vi.resetModules()
+  captureMock.mockClear()
 })
 
 afterEach(() => {
@@ -79,7 +88,7 @@ describe('getGlobalContentStats', () => {
     })
   })
 
-  it('falls back to zero stats when RPC returns an error', async () => {
+  it('falls back to zero stats when RPC returns an error AND fires Sentry capture', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
@@ -93,9 +102,16 @@ describe('getGlobalContentStats', () => {
       questoesCount: 0,
       concursosCount: 0,
     })
+    expect(captureMock).toHaveBeenCalledTimes(1)
+    const call = captureMock.mock.calls[0]!
+    expect(call[0]).toBeInstanceOf(Error)
+    expect((call[0] as Error).message).toMatch(/permission denied/)
+    expect(call[2]).toMatchObject({
+      helper: 'getGlobalContentStats',
+    })
   })
 
-  it('falls back to zero stats if createClient throws', async () => {
+  it('falls back to zero stats if createClient throws AND fires Sentry capture', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () => {
         throw new Error('boom — connection refused')
@@ -108,6 +124,9 @@ describe('getGlobalContentStats', () => {
       questoesCount: 0,
       concursosCount: 0,
     })
+    expect(captureMock).toHaveBeenCalledTimes(1)
+    const call = captureMock.mock.calls[0]!
+    expect((call[0] as Error).message).toMatch(/connection refused/)
   })
 })
 
@@ -135,7 +154,7 @@ describe('getConcursoContentStats', () => {
     })
   })
 
-  it('short-circuits to zeros when concursoId is empty (no RPC call)', async () => {
+  it('short-circuits to zeros when concursoId is empty (no RPC call, no Sentry)', async () => {
     const rpcSpy = vi.fn()
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () => Promise.resolve({ rpc: rpcSpy }),
@@ -148,9 +167,11 @@ describe('getConcursoContentStats', () => {
       concursosCount: 0,
     })
     expect(rpcSpy).not.toHaveBeenCalled()
+    // Empty concursoId is a guard hit, not an error — no Sentry.
+    expect(captureMock).not.toHaveBeenCalled()
   })
 
-  it('falls back to zero stats on RPC error', async () => {
+  it('falls back to zero stats on RPC error AND fires Sentry capture', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
@@ -164,9 +185,14 @@ describe('getConcursoContentStats', () => {
       questoesCount: 0,
       concursosCount: 0,
     })
+    expect(captureMock).toHaveBeenCalledTimes(1)
+    expect(captureMock.mock.calls[0]![2]).toMatchObject({
+      helper: 'getConcursoContentStats',
+      concursoId: 'some-id',
+    })
   })
 
-  it('falls back to zero stats if Supabase throws', async () => {
+  it('falls back to zero stats if Supabase throws AND fires Sentry capture', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () => {
         throw new Error('network')
@@ -179,6 +205,7 @@ describe('getConcursoContentStats', () => {
       questoesCount: 0,
       concursosCount: 0,
     })
+    expect(captureMock).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -210,7 +237,7 @@ describe('getFirstPublishedConcurso', () => {
     expect(result).toEqual(row)
   })
 
-  it('returns null when no published concurso exists', async () => {
+  it('returns null when no published concurso exists (no Sentry, legitimate pre-launch state)', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
@@ -234,6 +261,9 @@ describe('getFirstPublishedConcurso', () => {
     const { getFirstPublishedConcurso } = await import('@/lib/landing/get-content-stats')
     const result = await getFirstPublishedConcurso()
     expect(result).toBeNull()
+    // No row is a legit state (we haven't launched a concurso yet) —
+    // shouldn't pollute Sentry with a non-bug.
+    expect(captureMock).not.toHaveBeenCalled()
   })
 
   it('returns null when row has no slug (defensive)', async () => {

@@ -20,10 +20,20 @@
  * scoped to paying users + admins. We route through the SECURITY DEFINER
  * `public.get_content_counts(uuid)` RPC instead, which returns aggregates
  * only (no row payload, no leak of curated card content).
+ *
+ * SILENT-FALLBACK HARDENING (2026-05-27): every error path captures to
+ * Sentry with a unique correlationId. F-003 and F-004 both hid behind
+ * `catch → return ZERO_STATS` and only surfaced via explicit audits.
+ * Sentry capture on these paths means: if landing counts ever come back
+ * zero/wrong again, a Sentry issue fires immediately even though the
+ * page still renders. Pino-only logging wasn't enough — Sentry filters
+ * by level: 'warn' by default, and a marketing helper isn't on the
+ * dashboard people watch.
  */
 import { cache } from 'react'
 
 import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { createClient } from '@/lib/supabase/server'
 
 export interface ContentStats {
@@ -68,7 +78,8 @@ function coerceCounts(raw: unknown): ContentStats {
  * apex marketing landing to show "X flashcards · Y questões reais".
  */
 export const getGlobalContentStats = cache(async (): Promise<ContentStats> => {
-  const log = childLogger({ helper: 'getGlobalContentStats' })
+  const correlationId = crypto.randomUUID()
+  const log = childLogger({ helper: 'getGlobalContentStats', correlationId })
   try {
     const supabase = await createClient()
     // Pass an empty args object — the SQL function defaults p_concurso_id
@@ -77,11 +88,20 @@ export const getGlobalContentStats = cache(async (): Promise<ContentStats> => {
     const { data, error } = await supabase.rpc('get_content_counts', {})
     if (error) {
       log.warn({ err: error.message }, 'rpc failed — falling back to zero stats')
+      captureWithCorrelation(
+        new Error(`get_content_counts RPC failed: ${error.message}`),
+        correlationId,
+        {
+          helper: 'getGlobalContentStats',
+          rpcErrorMessage: error.message,
+        },
+      )
       return ZERO_STATS
     }
     return coerceCounts(data)
   } catch (err) {
     log.warn({ err: (err as Error).message }, 'falling back to zero stats')
+    captureWithCorrelation(err, correlationId, { helper: 'getGlobalContentStats' })
     return ZERO_STATS
   }
 })
@@ -92,7 +112,8 @@ export const getGlobalContentStats = cache(async (): Promise<ContentStats> => {
  * counts under the hero.
  */
 export const getConcursoContentStats = cache(async (concursoId: string): Promise<ContentStats> => {
-  const log = childLogger({ helper: 'getConcursoContentStats', concursoId })
+  const correlationId = crypto.randomUUID()
+  const log = childLogger({ helper: 'getConcursoContentStats', concursoId, correlationId })
   if (!concursoId) return ZERO_STATS
 
   try {
@@ -102,11 +123,24 @@ export const getConcursoContentStats = cache(async (concursoId: string): Promise
     })
     if (error) {
       log.warn({ err: error.message }, 'rpc failed — falling back to zero stats')
+      captureWithCorrelation(
+        new Error(`get_content_counts RPC failed: ${error.message}`),
+        correlationId,
+        {
+          helper: 'getConcursoContentStats',
+          concursoId,
+          rpcErrorMessage: error.message,
+        },
+      )
       return ZERO_STATS
     }
     return coerceCounts(data)
   } catch (err) {
     log.warn({ err: (err as Error).message }, 'falling back to zero stats')
+    captureWithCorrelation(err, correlationId, {
+      helper: 'getConcursoContentStats',
+      concursoId,
+    })
     return ZERO_STATS
   }
 })
@@ -122,7 +156,8 @@ export const getFirstPublishedConcurso = cache(
     title: string
     banca: string | null
   } | null> => {
-    const log = childLogger({ helper: 'getFirstPublishedConcurso' })
+    const correlationId = crypto.randomUUID()
+    const log = childLogger({ helper: 'getFirstPublishedConcurso', correlationId })
     try {
       const supabase = await createClient()
       const { data, error } = await supabase
@@ -137,12 +172,23 @@ export const getFirstPublishedConcurso = cache(
 
       if (error) {
         log.warn({ err: error.message }, 'lookup failed')
+        captureWithCorrelation(
+          new Error(`getFirstPublishedConcurso DB error: ${error.message}`),
+          correlationId,
+          {
+            helper: 'getFirstPublishedConcurso',
+            dbErrorMessage: error.message,
+          },
+        )
         return null
       }
+      // No published concurso is a legitimate state (pre-launch), not
+      // an error — don't fire Sentry for it.
       if (!data?.slug) return null
       return { slug: data.slug, title: data.title, banca: data.banca }
     } catch (err) {
       log.warn({ err: (err as Error).message }, 'unexpected error')
+      captureWithCorrelation(err, correlationId, { helper: 'getFirstPublishedConcurso' })
       return null
     }
   },
