@@ -61,7 +61,7 @@ export default async function AdminConcursosPage() {
                 <td className="px-4 py-3 text-foreground/70">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
-                      c.status === 'active'
+                      c.status === 'publicado'
                         ? 'bg-emerald-500/15 text-emerald-600'
                         : 'bg-foreground/10 text-foreground/70'
                     }`}
