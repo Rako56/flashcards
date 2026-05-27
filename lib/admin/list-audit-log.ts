@@ -11,6 +11,8 @@
  *  - `userId`: exact match on `user_id` (useful when looking up a
  *    specific user's trail).
  */
+import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { createClient } from '@/lib/supabase/server'
 
 export interface AuditLogRow {
@@ -57,7 +59,19 @@ export async function listAuditLog(
   }
 
   const { data, error, count } = await query
-  if (error) return { rows: [], total: 0, actions: [] }
+  if (error) {
+    const correlationId = crypto.randomUUID()
+    childLogger({ helper: 'listAuditLog', correlationId }).warn(
+      { err: error.message },
+      'audit_log query failed — returning empty',
+    )
+    captureWithCorrelation(
+      new Error(`listAuditLog query failed: ${error.message}`),
+      correlationId,
+      { helper: 'listAuditLog', dbErrorMessage: error.message, filters: opts },
+    )
+    return { rows: [], total: 0, actions: [] }
+  }
 
   // Build a small facet of distinct action types from the current
   // page (good-enough heuristic — the listing UI uses this to populate

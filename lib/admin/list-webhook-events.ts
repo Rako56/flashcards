@@ -9,6 +9,8 @@
  * Optional `status` filter narrows to `processed_status='success'`,
  * `'failed'`, or `'pending'`.
  */
+import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { createClient } from '@/lib/supabase/server'
 
 export interface WebhookEventRow {
@@ -52,7 +54,19 @@ export async function listWebhookEvents(
   }
 
   const { data, error, count } = await query
-  if (error) return { rows: [], total: 0 }
+  if (error) {
+    const correlationId = crypto.randomUUID()
+    childLogger({ helper: 'listWebhookEvents', correlationId }).warn(
+      { err: error.message },
+      'webhook_events query failed — returning empty',
+    )
+    captureWithCorrelation(
+      new Error(`listWebhookEvents query failed: ${error.message}`),
+      correlationId,
+      { helper: 'listWebhookEvents', dbErrorMessage: error.message, filters: opts },
+    )
+    return { rows: [], total: 0 }
+  }
 
   return { rows: data, total: count ?? 0 }
 }

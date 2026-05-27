@@ -5,6 +5,8 @@
  * Pagination: offset-based. Sorted by `created_at desc` so newest
  * requests bubble to the top of the triage queue.
  */
+import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { createClient } from '@/lib/supabase/server'
 
 export interface RefundRequestRow {
@@ -47,7 +49,19 @@ export async function listRefundRequests(
   }
 
   const { data, error, count } = await query
-  if (error) return { rows: [], total: 0 }
+  if (error) {
+    const correlationId = crypto.randomUUID()
+    childLogger({ helper: 'listRefundRequests', correlationId }).warn(
+      { err: error.message },
+      'refund_requests query failed — returning empty',
+    )
+    captureWithCorrelation(
+      new Error(`listRefundRequests query failed: ${error.message}`),
+      correlationId,
+      { helper: 'listRefundRequests', dbErrorMessage: error.message, filters: opts },
+    )
+    return { rows: [], total: 0 }
+  }
 
   return { rows: data, total: count ?? 0 }
 }
