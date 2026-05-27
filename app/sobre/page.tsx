@@ -11,16 +11,16 @@ export default function SobrePage() {
       <article className="prose prose-sm mt-8 max-w-none text-foreground/80">
         <p className="text-lg leading-relaxed">
           O Flashcards é um marketplace de preparações curadas para concursos públicos brasileiros.
-          Cada concurso ativo tem o seu próprio subdomínio (ex: <code>tjsp.flashcards.com.br</code>)
-          com flashcards autorais, simulado fiel à banca, caderno de erros automático e painel de
-          métricas.
+          Cada concurso tem o seu próprio subdomínio (ex:{' '}
+          <code>tjsp-escrevente.flashcards.com.br</code>) com flashcards autorais, simulado fiel à
+          banca e caderno de erros automático.
         </p>
 
         <h2 className="mt-8 text-lg font-semibold text-foreground">Como funciona</h2>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Você acessa o subdomínio do concurso e cria uma conta.</li>
           <li>Compra o acesso anual (R$ 297/ano, com 7 dias de reembolso garantido).</li>
-          <li>Estuda os flashcards no algoritmo SRS (Spaced Repetition System — FSRS-5).</li>
+          <li>Estuda os flashcards com algoritmo de repetição espaçada que calibra revisões.</li>
           <li>Faz simulado real próximo da prova; revisita os cards que mais errou.</li>
         </ol>
 
@@ -31,11 +31,16 @@ export default function SobrePage() {
           de chegar ao banco de produção.
         </p>
 
-        <h2 className="mt-8 text-lg font-semibold text-foreground">Stack</h2>
+        <h2 className="mt-8 text-lg font-semibold text-foreground">Garantia</h2>
         <p>
-          Next.js + TypeScript + Supabase + Asaas + Vercel. Open-source onde possível; algoritmo SRS
-          via ts-fsrs (FSRS-5). Monitoramento por Sentry, logs estruturados via pino, infraestrutura
-          em conformidade com LGPD.
+          Você tem 7 dias após a compra pra testar e pedir reembolso integral sem perguntas (CDC
+          art. 49). Pedido em <a href="/reembolso">/reembolso</a>.
+        </p>
+
+        <h2 className="mt-8 text-lg font-semibold text-foreground">Quer ver seu concurso aqui?</h2>
+        <p>
+          Manda um e-mail. A gente prioriza por demanda — quanto mais gente pedir, mais rápido a
+          banca entra no roadmap.
         </p>
 
         <h2 className="mt-8 text-lg font-semibold text-foreground">Contato</h2>
