@@ -111,6 +111,53 @@ describe('Asaas client', () => {
     ).rejects.toBeInstanceOf(AsaasApiError)
   })
 
+  it('falls back to res.text() when error body is not JSON (HTML 500 from gateway)', async () => {
+    // Simulates an upstream proxy/gateway returning HTML on error.
+    // Native Response only allows reading the body once, so we hand-roll
+    // a fake where .json() rejects (not JSON) and .text() succeeds.
+    // This exercises the .catch → .text() fallback path.
+    const fakeRes = {
+      ok: false,
+      status: 504,
+      json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON at position 0')),
+      text: () => Promise.resolve('<html><body>Gateway Timeout</body></html>'),
+    }
+    globalThis.fetch = vi.fn(() => Promise.resolve(fakeRes as unknown as Response))
+    const { createAsaasClient, AsaasApiError } = await import('@/lib/asaas/client')
+    try {
+      await createAsaasClient().createCustomer({ name: 'X', email: 'x@y.com' })
+      throw new Error('expected AsaasApiError but no throw')
+    } catch (err) {
+      expect(err).toBeInstanceOf(AsaasApiError)
+      const e = err as InstanceType<typeof AsaasApiError>
+      expect(e.status).toBe(504)
+      // Proves the .text() fallback executed (not the inner '(empty)' catch).
+      expect(typeof e.body).toBe('string')
+      expect(e.body).toMatch(/Gateway Timeout/)
+    }
+  })
+
+  it('falls back to "(empty)" when both res.json() and res.text() fail', async () => {
+    // Both .json() and .text() throw — exercises the inner .catch(() => '(empty)')
+    // on line 111. Hand-build a Response-like with throwing methods.
+    const fakeRes = {
+      ok: false,
+      status: 500,
+      json: () => Promise.reject(new Error('not json')),
+      text: () => Promise.reject(new Error('also broken')),
+    }
+    globalThis.fetch = vi.fn(() => Promise.resolve(fakeRes as unknown as Response))
+    const { createAsaasClient, AsaasApiError } = await import('@/lib/asaas/client')
+    try {
+      await createAsaasClient().createCustomer({ name: 'X', email: 'x@y.com' })
+      throw new Error('expected AsaasApiError but no throw')
+    } catch (err) {
+      expect(err).toBeInstanceOf(AsaasApiError)
+      const e = err as InstanceType<typeof AsaasApiError>
+      expect(e.body).toBe('(empty)')
+    }
+  })
+
   it('throws AsaasNotConfigured when calling without env', async () => {
     delete process.env['ASAAS_API_KEY']
     const { createAsaasClient, AsaasNotConfigured } = await import('@/lib/asaas/client')
