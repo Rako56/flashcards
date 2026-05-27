@@ -2,13 +2,14 @@
  * Tests for lib/landing/get-content-stats.ts
  *
  * Mocks `@/lib/supabase/server` so we don't hit the real DB. The module
- * uses count-only queries (`{ count: 'exact', head: true }`), so each
- * mocked path returns `{ count: <n>, error: null }`.
+ * uses the `public.get_content_counts(uuid)` RPC (F-004), so the mock
+ * stubs `supabase.rpc('get_content_counts', ...)`.
  *
  * Key behaviors under test:
  *  - Happy path returns {flashcardsCount, questoesCount, concursosCount}
  *  - Errors / thrown clients fall back to zero stats (never break landing)
  *  - Empty concursoId short-circuits to zeros (no DB call)
+ *  - RPC returning unexpected shapes is coerced to ZERO_STATS
  *  - getFirstPublishedConcurso filters by status='publicado' and ordering
  *    works as expected
  */
@@ -35,24 +36,18 @@ afterEach(() => {
 })
 
 describe('getGlobalContentStats', () => {
-  it('returns counts from all three tables on happy path', async () => {
-    // Each `.from(table)` returns a chain where `select(...).eq(...)` resolves
-    // to `{ count: N, error: null }`. We dispatch on table name.
+  it('returns counts from get_content_counts RPC on happy path', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
-          from: (table: string) => ({
-            select: () => ({
-              eq: () => {
-                const counts: Record<string, number> = {
-                  admin_flashcards: 3139,
-                  admin_questoes: 175,
-                  admin_concursos: 1,
-                }
-                return Promise.resolve({ count: counts[table] ?? 0, error: null })
-              },
-            }),
-          }),
+          rpc: (fnName: string, args: unknown) => {
+            expect(fnName).toBe('get_content_counts')
+            expect(args).toEqual({})
+            return Promise.resolve({
+              data: { flashcardsCount: 3139, questoesCount: 175, concursosCount: 1 },
+              error: null,
+            })
+          },
         }),
     }))
     const { getGlobalContentStats } = await import('@/lib/landing/get-content-stats')
@@ -64,15 +59,31 @@ describe('getGlobalContentStats', () => {
     })
   })
 
-  it('treats null counts as zero', async () => {
+  it('coerces non-numeric / missing fields to zero', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
-          from: () => ({
-            select: () => ({
-              eq: () => Promise.resolve({ count: null, error: null }),
+          rpc: () =>
+            Promise.resolve({
+              data: { flashcardsCount: 'wat', questoesCount: null, concursosCount: undefined },
+              error: null,
             }),
-          }),
+        }),
+    }))
+    const { getGlobalContentStats } = await import('@/lib/landing/get-content-stats')
+    const stats = await getGlobalContentStats()
+    expect(stats).toEqual({
+      flashcardsCount: 0,
+      questoesCount: 0,
+      concursosCount: 0,
+    })
+  })
+
+  it('falls back to zero stats when RPC returns an error', async () => {
+    vi.doMock('@/lib/supabase/server', () => ({
+      createClient: () =>
+        Promise.resolve({
+          rpc: () => Promise.resolve({ data: null, error: { message: 'permission denied' } }),
         }),
     }))
     const { getGlobalContentStats } = await import('@/lib/landing/get-content-stats')
@@ -101,27 +112,22 @@ describe('getGlobalContentStats', () => {
 })
 
 describe('getConcursoContentStats', () => {
-  it('returns concurso-scoped counts on happy path', async () => {
+  it('returns concurso-scoped counts on happy path and forwards concursoId', async () => {
     vi.doMock('@/lib/supabase/server', () => ({
       createClient: () =>
         Promise.resolve({
-          from: (table: string) => ({
-            select: () => ({
-              eq: () => ({
-                eq: () => {
-                  const counts: Record<string, number> = {
-                    admin_flashcards: 3139,
-                    admin_questoes: 175,
-                  }
-                  return Promise.resolve({ count: counts[table] ?? 0, error: null })
-                },
-              }),
-            }),
-          }),
+          rpc: (fnName: string, args: unknown) => {
+            expect(fnName).toBe('get_content_counts')
+            expect(args).toEqual({ p_concurso_id: 'concurso-abc' })
+            return Promise.resolve({
+              data: { flashcardsCount: 3139, questoesCount: 175, concursosCount: 1 },
+              error: null,
+            })
+          },
         }),
     }))
     const { getConcursoContentStats } = await import('@/lib/landing/get-content-stats')
-    const stats = await getConcursoContentStats('some-concurso-id')
+    const stats = await getConcursoContentStats('concurso-abc')
     expect(stats).toEqual({
       flashcardsCount: 3139,
       questoesCount: 175,
@@ -129,11 +135,30 @@ describe('getConcursoContentStats', () => {
     })
   })
 
-  it('short-circuits to zeros when concursoId is empty', async () => {
-    // No mock needed — guard runs before createClient. If the guard
-    // breaks and a query fires, the test will surface a different error.
+  it('short-circuits to zeros when concursoId is empty (no RPC call)', async () => {
+    const rpcSpy = vi.fn()
+    vi.doMock('@/lib/supabase/server', () => ({
+      createClient: () => Promise.resolve({ rpc: rpcSpy }),
+    }))
     const { getConcursoContentStats } = await import('@/lib/landing/get-content-stats')
     const stats = await getConcursoContentStats('')
+    expect(stats).toEqual({
+      flashcardsCount: 0,
+      questoesCount: 0,
+      concursosCount: 0,
+    })
+    expect(rpcSpy).not.toHaveBeenCalled()
+  })
+
+  it('falls back to zero stats on RPC error', async () => {
+    vi.doMock('@/lib/supabase/server', () => ({
+      createClient: () =>
+        Promise.resolve({
+          rpc: () => Promise.resolve({ data: null, error: { message: 'oops' } }),
+        }),
+    }))
+    const { getConcursoContentStats } = await import('@/lib/landing/get-content-stats')
+    const stats = await getConcursoContentStats('some-id')
     expect(stats).toEqual({
       flashcardsCount: 0,
       questoesCount: 0,

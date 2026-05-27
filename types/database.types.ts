@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_concursos: {
@@ -2070,6 +2045,7 @@ export type Database = {
         Args: { back: string; front: string }
         Returns: string[]
       }
+      get_content_counts: { Args: { p_concurso_id?: string }; Returns: Json }
       get_review_queue_stats: { Args: never; Returns: Json }
       get_weekly_leaderboard: {
         Args: { p_concurso_id: string; p_limit?: number; p_week_start: string }
@@ -2266,9 +2242,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
