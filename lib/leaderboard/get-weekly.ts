@@ -6,10 +6,16 @@
  * Returns top 50 by points for the given week (default: current
  * UTC-anchored Monday). Drops PII — only the columns the RPC exposes.
  *
- * Best-effort: returns [] on any error so the page doesn't 500.
+ * Best-effort: returns [] on any error so the page doesn't 500. BUT:
+ * every error path also captures to Sentry (silent-fallback hardening,
+ * 2026-05-27). An empty leaderboard could mean "no participants this
+ * week" (legitimate) OR "RPC is broken" (bug); without Sentry capture
+ * those two states are indistinguishable in observability.
  */
-import { createClient } from '@/lib/supabase/server'
 import { weekStartUTC } from '@/lib/gamification/award-xp'
+import { childLogger } from '@/lib/observability/logger'
+import { captureWithCorrelation } from '@/lib/observability/sentry'
+import { createClient } from '@/lib/supabase/server'
 
 export interface LeaderboardRow {
   user_id: string
@@ -29,6 +35,13 @@ export async function getWeeklyLeaderboard(
   if (!concursoId) return []
 
   const week = weekStart ?? weekStartUTC(new Date())
+  const correlationId = crypto.randomUUID()
+  const log = childLogger({
+    helper: 'getWeeklyLeaderboard',
+    concursoId,
+    week,
+    correlationId,
+  })
 
   try {
     const supabase = await createClient()
@@ -37,9 +50,28 @@ export async function getWeeklyLeaderboard(
       p_week_start: week,
       p_limit: limit,
     })
-    if (error) return []
+    if (error) {
+      log.warn({ err: error.message }, 'rpc failed — returning empty leaderboard')
+      captureWithCorrelation(
+        new Error(`get_weekly_leaderboard RPC failed: ${error.message}`),
+        correlationId,
+        {
+          helper: 'getWeeklyLeaderboard',
+          concursoId,
+          week,
+          rpcErrorMessage: error.message,
+        },
+      )
+      return []
+    }
     return data
-  } catch {
+  } catch (err) {
+    log.warn({ err: (err as Error).message }, 'unexpected error — returning empty leaderboard')
+    captureWithCorrelation(err, correlationId, {
+      helper: 'getWeeklyLeaderboard',
+      concursoId,
+      week,
+    })
     return []
   }
 }
