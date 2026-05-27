@@ -154,23 +154,38 @@ function mapZodError(err: z.ZodError): AuthActionResult {
 
 function friendlyAuthError(message: string): string {
   // Translate the most common Supabase Auth error messages to PT-BR.
-  // Default to the raw message if no known pattern matches (better than
-  // hiding info that might help the user).
+  // The fallback wraps the raw message so the user has actionable info,
+  // not a generic "algo deu errado".
   const lower = message.toLowerCase()
   if (lower.includes('invalid login') || lower.includes('invalid_credentials')) {
-    return 'E-mail ou senha inválidos.'
+    return 'E-mail ou senha inválidos. Verifique e tente novamente.'
   }
   if (lower.includes('user already registered') || lower.includes('already exists')) {
-    return 'Esse e-mail já está cadastrado. Tente fazer login.'
+    return 'Esse e-mail já está cadastrado. Tente fazer login ou recuperar a senha.'
   }
   if (lower.includes('email not confirmed')) {
     return 'Confirme o e-mail antes de fazer login. Reenvie o link em /auth/confirmar-email se não recebeu.'
   }
   if (lower.includes('password') && lower.includes('weak')) {
-    return 'Senha muito fraca. Use uma combinação mais segura (não vazada em incidentes públicos).'
+    return 'Essa senha aparece em vazamentos públicos. Use outra com pelo menos 10 caracteres.'
   }
-  if (lower.includes('rate limit')) {
-    return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+  if (lower.includes('password') && (lower.includes('short') || lower.includes('length'))) {
+    return 'A senha precisa ter pelo menos 10 caracteres.'
   }
-  return message
+  if (lower.includes('rate limit') || lower.includes('too many')) {
+    return 'Muitas tentativas em sequência. Aguarde alguns minutos e tente novamente.'
+  }
+  if (lower.includes('user not found')) {
+    return 'Não encontramos uma conta com esse e-mail.'
+  }
+  if (lower.includes('link is invalid') || lower.includes('token') || lower.includes('expired')) {
+    return 'O link expirou. Solicite um novo em /esqueci-senha ou /auth/confirmar-email.'
+  }
+  if (lower.includes('network') || lower.includes('fetch failed') || lower.includes('timeout')) {
+    return 'Falha de conexão. Verifique sua internet e tente novamente.'
+  }
+  // Last-resort fallback — show the raw message but with a friendly
+  // prefix so the user knows the system tried to communicate something
+  // useful, not a black-box 500.
+  return `Não foi possível concluir: ${message}`
 }
