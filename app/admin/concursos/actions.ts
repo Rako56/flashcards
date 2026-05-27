@@ -16,7 +16,11 @@ import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { createClient } from '@/lib/supabase/server'
 
-const STATUS_ENUM = ['active', 'archived', 'draft'] as const
+// PT-BR vocabulary, matches the DB column default 'rascunho' and the row
+// values used in production. The legacy ['active','archived','draft']
+// enum drifted from the DB and silently broke the payment grant lookup
+// + sitemap filtering (F-003, 2026-05-27).
+const STATUS_ENUM = ['publicado', 'arquivado', 'rascunho'] as const
 
 const ToggleSchema = z.object({
   concursoId: z.string().uuid('concursoId must be a UUID'),
