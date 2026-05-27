@@ -29,12 +29,19 @@ export async function SiteHeader() {
           <Link
             href="/"
             className="text-foreground transition-colors hover:text-brand-primary"
-            aria-label={concurso ? `Flashcards — ${concurso.slug}` : 'Flashcards'}
+            aria-label={concurso ? `Flashcards — ${concurso.title}` : 'Flashcards'}
           >
             <span className="inline-flex items-baseline gap-2">
               <Wordmark size="md" />
               {concurso ? (
-                <span className="text-xs font-normal text-foreground/50">· {concurso.slug}</span>
+                // Concurso badge — banca·estado is more meaningful to a
+                // visitor than the URL slug. Falls back to slug only if
+                // banca isn't set.
+                <span className="hidden rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-primary sm:inline-block">
+                  {concurso.banca && concurso.estado
+                    ? `${concurso.banca} · ${concurso.estado}`
+                    : (concurso.banca ?? concurso.estado ?? concurso.slug)}
+                </span>
               ) : null}
             </span>
           </Link>
