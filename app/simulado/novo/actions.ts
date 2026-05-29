@@ -113,7 +113,7 @@ export async function createSimuladoAction(
   const candidatePoolSize = parsed.data.total_questions * 3
   const { data: candidates, error: poolError } = await supabase
     .from('admin_questoes')
-    .select('id, anulada, depende_visual, status')
+    .select('id, gabarito, anulada, depende_visual, status')
     .eq('concurso_id', concurso.id)
     .eq('status', 'active')
     .eq('anulada', false)
@@ -136,11 +136,20 @@ export async function createSimuladoAction(
 
   // Map IDs first, then sort by random key. Avoids index-mutation
   // gymnastics that fight noUncheckedIndexedAccess + lint rules.
-  const picked = pool
-    .map((q) => ({ id: q.id, sort: Math.random() }))
+  const pickedQuestions = pool
+    .map((q) => ({ q, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .slice(0, parsed.data.total_questions)
-    .map((entry) => entry.id)
+    .map((entry) => entry.q)
+  const picked = pickedQuestions.map((q) => q.id)
+
+  // Freeze the answer key at creation (F-009): scoring reads this snapshot
+  // instead of a live admin_questoes query, so archiving or editing a
+  // question later can't mis-score an already-created simulado.
+  const gabaritoSnapshot: Record<string, { gabarito: string | null; anulada: boolean | null }> = {}
+  for (const q of pickedQuestions) {
+    gabaritoSnapshot[q.id] = { gabarito: q.gabarito, anulada: q.anulada }
+  }
 
   const { data: inserted, error: insertError } = await supabase
     .from('simulados')
@@ -150,6 +159,7 @@ export async function createSimuladoAction(
       description: parsed.data.description ?? null,
       total_questions: parsed.data.total_questions,
       question_ids: picked,
+      gabarito_snapshot: gabaritoSnapshot,
       status: 'pending',
       time_limit_minutes:
         parsed.data.time_limit_minutes && parsed.data.time_limit_minutes > 0
