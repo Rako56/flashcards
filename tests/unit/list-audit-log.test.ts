@@ -94,13 +94,12 @@ describe('listAuditLog', () => {
       },
     ]
     const { builder, trace } = makeQueryStub({ data: rows, error: null, count: 99 })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () =>
-        Promise.resolve({
-          from: () => ({
-            select: () => builder,
-          }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({
+        from: () => ({
+          select: () => builder,
         }),
+      }),
     }))
     const { listAuditLog } = await import('@/lib/admin/list-audit-log')
     const result = await listAuditLog()
@@ -116,8 +115,8 @@ describe('listAuditLog', () => {
 
   it('forwards action filter and userId filter as .eq() calls', async () => {
     const { builder, trace } = makeQueryStub({ data: [], error: null, count: 0 })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listAuditLog } = await import('@/lib/admin/list-audit-log')
     await listAuditLog({ action: 'user_deletion', userId: 'u-42', limit: 20, offset: 40 })
@@ -128,8 +127,8 @@ describe('listAuditLog', () => {
 
   it('returns empty + fires Sentry on db error', async () => {
     const { builder } = makeQueryStub({ data: null, error: { message: 'rls denied' }, count: null })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listAuditLog } = await import('@/lib/admin/list-audit-log')
     const result = await listAuditLog()

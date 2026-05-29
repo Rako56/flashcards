@@ -23,6 +23,8 @@ import { getAsaasClient } from '@/lib/asaas/client'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
+// eslint-disable-next-line no-restricted-imports -- 'use server' action; purchases is a server-managed ledger (RLS has no INSERT policy)
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 const ANNUAL_PRICE_CENTS = 29700 // R$ 297,00
@@ -82,8 +84,12 @@ export async function startCheckoutAction(): Promise<CheckoutResult> {
       externalReference,
     })
 
-    // Step 3: audit row so webhook can reconcile via asaas_payment_id
-    const { error: purchaseError } = await supabase.from('purchases').insert({
+    // Step 3: record the pending purchase in the ledger so the webhook can
+    // flip it to 'paid' by asaas_payment_id on confirmation. purchases has
+    // RLS enabled with no INSERT policy (server-managed ledger), so the
+    // user-context client is denied — write via the service-role client.
+    const adminSupabase = createAdminClient()
+    const { error: purchaseError } = await adminSupabase.from('purchases').insert({
       user_id: user.id,
       concurso_id: concurso.id,
       status: 'pending',
