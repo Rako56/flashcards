@@ -2063,6 +2063,23 @@ export type Database = {
       }
       get_content_counts: { Args: { p_concurso_id?: string }; Returns: Json }
       get_review_queue_stats: { Args: never; Returns: Json }
+      get_study_queue: {
+        Args: { p_concurso_id: string; p_limit?: number }
+        Returns: {
+          back_text: string
+          difficulty: number
+          disciplina_id: string
+          due_at: string
+          front_text: string
+          fundamento_legal: string
+          id: string
+          lapses: number
+          last_reviewed_at: string
+          stability: number
+          tipo_card: string
+          topico_id: string
+        }[]
+      }
       get_weekly_leaderboard: {
         Args: { p_concurso_id: string; p_limit?: number; p_week_start: string }
         Returns: {
