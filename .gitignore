@@ -40,3 +40,24 @@ pnpm-debug.log*
 *.tsbuildinfo
 .eslintcache
 next-env.d.ts
+
+# Vercel CLI link
+.vercel/
+
+# Legacy Vite build (pre-Next.js migration; kept locally for reference, never deploys)
+dist/
+
+# Content pipeline outputs — large local-only data dumps (chunks, parsed JSONs)
+# kept on disk for Cowork iteration but never committed.
+scripts/flashcard-pipeline/chunks/
+scripts/flashcard-pipeline/processed/
+scripts/flashcard-pipeline/questoes/
+scripts/residencia-multiplier/*.json
+scripts/residencia-multiplier/*.html
+scripts/residencia-multiplier/*.txt
+scripts/residencia-multiplier/*.pdf
+
+# Marketing/experiment assets that aren't actively wired (Rafael may
+# delete them via separate PR — kept locally for reference).
+public/criativo-tjsp.html
+public/criativo-tjsp.mp4

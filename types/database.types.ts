@@ -1550,6 +1550,9 @@ export type Database = {
           granted_at: string
           granted_by: string
           id: string
+          plan: string
+          purchase_id: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -1558,6 +1561,9 @@ export type Database = {
           granted_at?: string
           granted_by?: string
           id?: string
+          plan?: string
+          purchase_id?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -1566,6 +1572,9 @@ export type Database = {
           granted_at?: string
           granted_by?: string
           id?: string
+          plan?: string
+          purchase_id?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -1574,6 +1583,13 @@ export type Database = {
             columns: ["concurso_id"]
             isOneToOne: false
             referencedRelation: "admin_concursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_concurso_access_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
             referencedColumns: ["id"]
           },
         ]
