@@ -32,6 +32,16 @@ const RATING_LABELS: Record<
   easy: { label: 'Fácil', variant: 'default' },
 }
 
+// Human labels for the internal tipo_card taxonomy. Falls back to the raw
+// value for any future type so a new tipo never renders blank or crashes.
+const TIPO_LABELS = new Map<string, string>([
+  ['conceito', 'Conceito'],
+  ['vf', 'Certo ou errado'],
+  ['cloze', 'Complete a lacuna'],
+  ['conceito_aplicacao', 'Aplicação'],
+  ['contraste', 'Contraste'],
+])
+
 export function StudySession({ initialQueue }: StudySessionProps) {
   const [index, setIndex] = useState(0)
   const [showBack, setShowBack] = useState(false)
@@ -104,7 +114,9 @@ export function StudySession({ initialQueue }: StudySessionProps) {
       </div>
 
       <article className="min-h-[260px] rounded-lg border border-border bg-card p-8 shadow-sm">
-        <div className="text-xs uppercase tracking-wider text-foreground/50">{card.tipo_card}</div>
+        <div className="text-xs uppercase tracking-wider text-foreground/50">
+          {TIPO_LABELS.get(card.tipo_card) ?? card.tipo_card}
+        </div>
         <div className="mt-4 text-lg leading-relaxed text-foreground">
           {renderCloze(card.front_text, showBack)}
         </div>

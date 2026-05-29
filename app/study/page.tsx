@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-import { buildQueue, type QueueCardWithProgress } from '@/lib/srs/queue'
+import { buildQueue, type QueueCard, type QueueCardWithProgress } from '@/lib/srs/queue'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
@@ -84,23 +84,89 @@ export default async function StudyPage({
   // 200-row sample keeps payload reasonable while letting buildQueue
   // pick from a fresh pool each session.
   const supabase = await createClient()
-  let query = supabase
-    .from('admin_flashcards')
-    .select(
-      'id, front_text, back_text, tipo_card, topico_id, disciplina_id, fundamento_legal, user_flashcard_progress(stability, difficulty, lapses, last_reviewed_at, due_at)',
-    )
-    .eq('concurso_id', concurso.id)
-    .eq('status', 'active')
+
+  let queue: QueueCard[] = []
+  let loadFailed = false
 
   if (mistakeIds !== null) {
-    query = query.in('id', mistakeIds)
+    // Mistakes mode: a bounded set of specific card ids. Fetch them with the
+    // user's nested progress and build the queue in JS so each card respects
+    // its real due_at.
+    const { data: cards, error } = await supabase
+      .from('admin_flashcards')
+      .select(
+        'id, front_text, back_text, tipo_card, topico_id, disciplina_id, fundamento_legal, user_flashcard_progress(stability, difficulty, lapses, last_reviewed_at, due_at)',
+      )
+      .eq('concurso_id', concurso.id)
+      .eq('status', 'active')
+      .in('id', mistakeIds)
+
+    if (error) {
+      loadFailed = true
+    } else {
+      // Filter user_flashcard_progress to current user (Supabase's nested
+      // select returns ALL related rows; we filter client-side because the
+      // typegen doesn't expose a way to apply per-relation eq() server-side
+      // without the foreign table being declared in admin_flashcards FK).
+      interface ProgressRow {
+        stability: number
+        difficulty: number
+        lapses: number
+        last_reviewed_at: string | null
+        due_at: string | null
+      }
+      const withProgress: QueueCardWithProgress[] = cards.map((c) => {
+        const progressArray = (c.user_flashcard_progress as ProgressRow[] | null) ?? []
+        const userProgress = progressArray[0] // assume RLS already filtered to current user
+        return {
+          id: c.id,
+          front_text: c.front_text,
+          back_text: c.back_text,
+          tipo_card: c.tipo_card,
+          topico_id: c.topico_id,
+          disciplina_id: c.disciplina_id,
+          fundamento_legal: c.fundamento_legal,
+          progress: userProgress
+            ? {
+                stability: userProgress.stability,
+                difficulty: userProgress.difficulty,
+                lapses: userProgress.lapses,
+                last_reviewed_at: userProgress.last_reviewed_at,
+                due_at: userProgress.due_at,
+              }
+            : null,
+        }
+      })
+      queue = buildQueue(withProgress, { limit: SESSION_LIMIT })
+    }
   } else {
-    query = query.limit(200)
+    // Default mode: DB-side queue (DUE first, then a RANDOM sample of NEW
+    // cards) via get_study_queue. A blind .limit(200) returned a deterministic
+    // physical slice that hid ~99% of the bank — entire disciplinas were
+    // unreachable. The RPC randomizes NEW cards so coverage rotates across the
+    // whole concurso while still surfacing due cards first, and returns them
+    // already in priority order, so we take its top SESSION_LIMIT directly.
+    const { data: rows, error } = await supabase.rpc('get_study_queue', {
+      p_concurso_id: concurso.id,
+      p_limit: SESSION_LIMIT,
+    })
+
+    if (error) {
+      loadFailed = true
+    } else {
+      queue = rows.map((r) => ({
+        id: r.id,
+        front_text: r.front_text,
+        back_text: r.back_text,
+        tipo_card: r.tipo_card,
+        topico_id: r.topico_id,
+        disciplina_id: r.disciplina_id,
+        fundamento_legal: r.fundamento_legal,
+      }))
+    }
   }
 
-  const { data: cards, error } = await query
-
-  if (error) {
+  if (loadFailed) {
     // Show a degraded view rather than throwing into the framework boundary
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
@@ -110,42 +176,6 @@ export default async function StudyPage({
       </main>
     )
   }
-
-  // Filter user_flashcard_progress to current user (Supabase's nested
-  // select returns ALL related rows; we filter client-side because the
-  // typegen doesn't expose a way to apply per-relation eq() server-side
-  // without the foreign table being declared in admin_flashcards FK).
-  interface ProgressRow {
-    stability: number
-    difficulty: number
-    lapses: number
-    last_reviewed_at: string | null
-    due_at: string | null
-  }
-  const withProgress: QueueCardWithProgress[] = cards.map((c) => {
-    const progressArray = (c.user_flashcard_progress as ProgressRow[] | null) ?? []
-    const userProgress = progressArray[0] // assume RLS already filtered to current user
-    return {
-      id: c.id,
-      front_text: c.front_text,
-      back_text: c.back_text,
-      tipo_card: c.tipo_card,
-      topico_id: c.topico_id,
-      disciplina_id: c.disciplina_id,
-      fundamento_legal: c.fundamento_legal,
-      progress: userProgress
-        ? {
-            stability: userProgress.stability,
-            difficulty: userProgress.difficulty,
-            lapses: userProgress.lapses,
-            last_reviewed_at: userProgress.last_reviewed_at,
-            due_at: userProgress.due_at,
-          }
-        : null,
-    }
-  })
-
-  const queue = buildQueue(withProgress, { limit: SESSION_LIMIT })
 
   if (queue.length === 0) {
     return (
