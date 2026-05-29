@@ -138,20 +138,37 @@ export async function awardXpAndStreak(
       .eq('week_start', week)
       .maybeSingle()
 
-    // Compute next streak based on the row's updated_at (last review timestamp).
-    // We use updated_at because it auto-bumps on every UPSERT, so it reflects
-    // the date of the user's previous review in this concurso this week.
-    let nextStreak: number
+    // Compute next streak from the previous review's updated_at (it bumps on
+    // every upsert, so it's the date of the last review). Within the same
+    // week we use this week's row; on a NEW week we must carry the streak
+    // from the user's most-recent prior weekly row — otherwise every Monday
+    // (a fresh week_start row) would reset a running streak to 1.
+    let basisUpdatedAt: string | null = wsRow?.updated_at ?? null
+    let basisStreak: number = wsRow?.streak_days ?? 0
     if (!wsRow) {
-      // First review of the week
+      // New week: carry from the most-recent prior weekly row.
+      const { data: prevWs } = await supabase
+        .from('weekly_scores')
+        .select('streak_days, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      basisUpdatedAt = prevWs?.updated_at ?? null
+      basisStreak = prevWs?.streak_days ?? 0
+    }
+
+    let nextStreak: number
+    if (!basisUpdatedAt) {
+      // No prior activity at all — first review ever.
       nextStreak = 1
-    } else if (sameUTCDay(wsRow.updated_at, now)) {
-      // Already reviewed today — no streak bump, no double count
-      nextStreak = wsRow.streak_days || 1
-    } else if (isYesterdayUTC(wsRow.updated_at, now)) {
-      nextStreak = (wsRow.streak_days || 0) + 1
+    } else if (sameUTCDay(basisUpdatedAt, now)) {
+      // Already reviewed today — no streak bump, no double count.
+      nextStreak = basisStreak || 1
+    } else if (isYesterdayUTC(basisUpdatedAt, now)) {
+      nextStreak = basisStreak + 1
     } else {
-      // Gap — reset to 1
+      // Real gap (>1 day) — reset to 1.
       nextStreak = 1
     }
 

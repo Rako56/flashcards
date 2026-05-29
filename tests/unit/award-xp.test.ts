@@ -19,6 +19,10 @@ interface ChainResult {
 interface MockTable {
   selectChain: ChainResult
   upsertResult: { error: { message: string } | null }
+  // Optional result for the "prior weekly row" lookup (the query that uses
+  // .order().limit()) — lets a test return null for THIS week's row but a
+  // real row for the most-recent prior week (cross-week streak carry).
+  prevChain?: ChainResult
 }
 
 function makeSupabaseStub(tables: Record<string, MockTable>) {
@@ -28,9 +32,16 @@ function makeSupabaseStub(tables: Record<string, MockTable>) {
       if (!table) {
         throw new Error(`unexpected table ${name}`)
       }
+      let usedOrder = false
       const selectChain = {
         eq: () => selectChain,
-        maybeSingle: () => Promise.resolve(table.selectChain),
+        order: () => {
+          usedOrder = true
+          return selectChain
+        },
+        limit: () => selectChain,
+        maybeSingle: () =>
+          Promise.resolve(usedOrder && table.prevChain ? table.prevChain : table.selectChain),
       }
       return {
         select: () => selectChain,
@@ -184,6 +195,32 @@ describe('awardXpAndStreak', () => {
     expect(result.ok).toBe(true)
     expect(result.newStreak).toBe(1)
     expect(result.xpDelta).toBe(1)
+  })
+
+  it('new week carries the streak from the prior weekly row (no Monday reset)', async () => {
+    const supabase = makeSupabaseStub({
+      user_gamification: {
+        selectChain: { data: { total_xp: 100 }, error: null },
+        upsertResult: { error: null },
+      },
+      weekly_scores: {
+        // This week's row doesn't exist yet (e.g. it's Monday)...
+        selectChain: { data: null, error: null },
+        // ...but the most-recent prior row was updated YESTERDAY with streak 5.
+        prevChain: {
+          data: { streak_days: 5, updated_at: '2026-05-19T09:00:00Z' },
+          error: null,
+        },
+        upsertResult: { error: null },
+      },
+    })
+    const result = await awardXpAndStreak(supabase as any, {
+      ...baseInput,
+      rating: 'good',
+      now: new Date('2026-05-20T10:00:00Z'),
+    })
+    expect(result.ok).toBe(true)
+    expect(result.newStreak).toBe(6) // carried 5 + 1 — NOT reset to 1
   })
 
   it('non-fatal user_gamification upsert error still allows weekly_scores', async () => {
