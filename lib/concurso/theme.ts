@@ -26,8 +26,11 @@ const FLASHCARDS_DEFAULT: ConcursoTheme = {
 }
 
 const THEMES_BY_SLUG: Readonly<Record<string, ConcursoTheme>> = {
-  // TJSP Escrevente — judicial / institutional / serious — navy + amber
-  tjsp: {
+  // TJSP Escrevente — judicial / institutional / serious — navy + amber.
+  // Key MUST be the concurso SLUG ('tjsp-escrevente'), not 'tjsp' — otherwise
+  // getThemeBySlug never matches and TJSP silently falls back to the default
+  // blue (which is why it looked identical to the apex). F-010 fix.
+  'tjsp-escrevente': {
     primary: '217 91% 30%', // deeper navy blue
     primaryForeground: '0 0% 100%',
     accent: '38 92% 50%', // amber-500

@@ -6,10 +6,15 @@ import { describe, expect, it } from 'vitest'
 import { getThemeBySlug, themeToCssVars } from '@/lib/concurso/theme'
 
 describe('getThemeBySlug', () => {
-  it('returns the tjsp theme for slug "tjsp"', () => {
-    const theme = getThemeBySlug('tjsp')
+  it('returns the navy theme for the real TJSP slug "tjsp-escrevente"', () => {
+    const theme = getThemeBySlug('tjsp-escrevente')
     expect(theme.primary).toBe('217 91% 30%')
     expect(theme.accent).toBe('38 92% 50%')
+  })
+
+  it('falls back to default for bare "tjsp" (NOT the concurso slug — F-010 guard)', () => {
+    const theme = getThemeBySlug('tjsp')
+    expect(theme.primary).toBe('221 83% 53%')
   })
 
   it('returns the pf theme for slug "pf"', () => {
