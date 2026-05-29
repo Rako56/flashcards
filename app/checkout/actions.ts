@@ -74,6 +74,7 @@ export async function startCheckoutAction(): Promise<CheckoutResult> {
   dueDate.setUTCDate(dueDate.getUTCDate() + ANNUAL_DUE_OFFSET_DAYS)
   const externalReference = `${user.id}:${concurso.slug}:annual`
 
+  let invoiceUrl: string
   try {
     const charge = await client.createCharge({
       customer: customerId,
@@ -111,7 +112,7 @@ export async function startCheckoutAction(): Promise<CheckoutResult> {
     }
 
     log.info({ chargeId: charge.id }, 'checkout charge created — redirecting')
-    redirect(charge.invoiceUrl)
+    invoiceUrl = charge.invoiceUrl
   } catch (err) {
     captureWithCorrelation(err, correlationId, { stage: 'asaas.createCharge' })
     log.error({ err: err instanceof Error ? err.message : String(err) }, 'createCharge failed')
@@ -120,4 +121,10 @@ export async function startCheckoutAction(): Promise<CheckoutResult> {
       error: 'Não conseguimos criar o pedido agora. Tente em alguns minutos ou fale com o suporte.',
     }
   }
+
+  // redirect() throws NEXT_REDIRECT by design — it MUST run OUTSIDE the
+  // try/catch above. Inside it, the catch would swallow the control-flow
+  // signal (captureWithCorrelation does not rethrow) and the user would
+  // never reach the Asaas hosted checkout — a silent revenue blocker.
+  redirect(invoiceUrl)
 }

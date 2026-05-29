@@ -166,8 +166,17 @@ export async function awardXpAndStreak(
         points: newPoints,
         reviews_count: newReviewsCount,
         streak_days: nextStreak,
+        // Bump explicitly: weekly_scores has no updated_at trigger, and the
+        // streak logic above reads the PREVIOUS row's updated_at to decide
+        // same-day / yesterday. Without this it would freeze at row creation.
+        updated_at: now.toISOString(),
       },
-      { onConflict: 'user_id,concurso_id,week_start' },
+      // The ONLY unique constraint on weekly_scores is (user_id, week_start).
+      // The conflict target must match it exactly, or every upsert raises
+      // 42P10 and silently fails (gamification is best-effort) — i.e. real
+      // users would never accrue points/streak/leaderboard. v1 is
+      // single-concurso, so one weekly row per user is correct.
+      { onConflict: 'user_id,week_start' },
     )
     if (wsError) {
       captureWithCorrelation(wsError, correlationId, { stage: 'weekly_scores.upsert' })
