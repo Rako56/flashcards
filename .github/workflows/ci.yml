@@ -199,7 +199,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.39.2
+          # Pin matched to the CLI that writes supabase/config.toml locally.
+          # 2.39.2 was too old and rejected newer config keys (oauth_server,
+          # storage.s3_protocol/vector, db.health_timeout, apple.email_optional)
+          # → `supabase link` failed at config parse on every main push.
+          version: 2.101.0
       # `--linked` requires `supabase link --project-ref` first (writes
       # supabase/.temp/project-ref). We link non-interactively then lint.
       - name: Link project
