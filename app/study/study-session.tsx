@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 
+import { renderCloze } from '@/components/cloze'
 import { Button } from '@/components/ui/button'
 import type { QueueCard } from '@/lib/srs/queue'
 import type { Rating } from '@/lib/srs/types'
@@ -104,7 +105,9 @@ export function StudySession({ initialQueue }: StudySessionProps) {
 
       <article className="min-h-[260px] rounded-lg border border-border bg-card p-8 shadow-sm">
         <div className="text-xs uppercase tracking-wider text-foreground/50">{card.tipo_card}</div>
-        <div className="mt-4 text-lg leading-relaxed text-foreground">{card.front_text}</div>
+        <div className="mt-4 text-lg leading-relaxed text-foreground">
+          {renderCloze(card.front_text, showBack)}
+        </div>
 
         {showBack ? (
           <div className="mt-6 border-t border-border pt-6 text-base leading-relaxed text-foreground/90">

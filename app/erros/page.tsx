@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { renderCloze } from '@/components/cloze'
 import { Button } from '@/components/ui/button'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
@@ -148,7 +149,7 @@ export default async function MistakesPage({
                     {entry.card.topico_titulo ? ` · ${entry.card.topico_titulo}` : null}
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-foreground/90">
-                    {entry.card.front_text}
+                    {renderCloze(entry.card.front_text, true)}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
