@@ -1173,6 +1173,7 @@ export type Database = {
           difficulty_filter: string | null
           discipline_filter: Json | null
           finished_at: string | null
+          gabarito_snapshot: Json | null
           goal_id: string | null
           id: string
           question_ids: string[]
@@ -1194,6 +1195,7 @@ export type Database = {
           difficulty_filter?: string | null
           discipline_filter?: Json | null
           finished_at?: string | null
+          gabarito_snapshot?: Json | null
           goal_id?: string | null
           id?: string
           question_ids?: string[]
@@ -1215,6 +1217,7 @@ export type Database = {
           difficulty_filter?: string | null
           discipline_filter?: Json | null
           finished_at?: string | null
+          gabarito_snapshot?: Json | null
           goal_id?: string | null
           id?: string
           question_ids?: string[]

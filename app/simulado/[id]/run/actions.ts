@@ -96,7 +96,7 @@ export async function submitSimuladoAction(
   // 1. Load the simulado (ownership + question_ids needed for scoring)
   const { data: simulado, error: loadErr } = await supabase
     .from('simulados')
-    .select('id, status, question_ids, total_questions')
+    .select('id, status, question_ids, total_questions, gabarito_snapshot')
     .eq('id', simuladoId)
     .eq('user_id', user.id)
     .maybeSingle()
@@ -108,17 +108,31 @@ export async function submitSimuladoAction(
     return { ...failed, redirectTo: `/simulado/${simuladoId}` }
   }
 
-  // 2. Load the gabarito map for scoring
-  const { data: questions, error: qErr } = await supabase
-    .from('admin_questoes')
-    .select('id, gabarito, anulada')
-    .in('id', simulado.question_ids)
-
-  if (qErr) return failed
-
+  // 2. Build the gabarito map. Prefer the snapshot frozen at creation
+  //    (F-009) — immune to later archival/edits of admin_questoes. Fall back
+  //    to a live query for simulados created before snapshots existed.
   const gabaritoById = new Map<string, { gabarito: string | null; anulada: boolean }>()
-  for (const q of questions) {
-    gabaritoById.set(q.id, { gabarito: q.gabarito, anulada: q.anulada })
+  const snapshot = simulado.gabarito_snapshot
+  if (snapshot !== null && typeof snapshot === 'object' && !Array.isArray(snapshot)) {
+    for (const [qid, raw] of Object.entries(snapshot)) {
+      if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+        const g = raw['gabarito']
+        gabaritoById.set(qid, {
+          gabarito: typeof g === 'string' ? g : null,
+          anulada: raw['anulada'] === true,
+        })
+      }
+    }
+  }
+  if (gabaritoById.size === 0) {
+    const { data: questions, error: qErr } = await supabase
+      .from('admin_questoes')
+      .select('id, gabarito, anulada')
+      .in('id', simulado.question_ids)
+    if (qErr) return failed
+    for (const q of questions) {
+      gabaritoById.set(q.id, { gabarito: q.gabarito, anulada: q.anulada })
+    }
   }
 
   // 3. Score: count answered + correct. Anuladas count as correct
