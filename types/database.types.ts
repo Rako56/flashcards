@@ -2062,6 +2062,19 @@ export type Database = {
         Returns: string[]
       }
       get_content_counts: { Args: { p_concurso_id?: string }; Returns: Json }
+      get_recent_mistakes: {
+        Args: { p_concurso_id: string; p_limit?: number; p_window_days?: number }
+        Returns: {
+          back_text: string
+          card_id: string
+          disciplina_titulo: string
+          front_text: string
+          fundamento_legal: string
+          reviewed_at: string
+          tipo_card: string
+          topico_titulo: string
+        }[]
+      }
       get_review_queue_stats: { Args: never; Returns: Json }
       get_study_queue: {
         Args: { p_concurso_id: string; p_limit?: number }
