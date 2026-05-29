@@ -9,9 +9,12 @@
  * Optional `status` filter narrows to `processed_status='success'`,
  * `'failed'`, or `'pending'`.
  */
+import 'server-only'
+
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
-import { createClient } from '@/lib/supabase/server'
+// eslint-disable-next-line no-restricted-imports -- role-gated /admin viewer; webhook_events has no RLS read policy, so it must be read via the service-role client
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface WebhookEventRow {
   event_id: string
@@ -36,7 +39,11 @@ export async function listWebhookEvents(
   const limit = opts.limit ?? 50
   const offset = opts.offset ?? 0
 
-  const supabase = await createClient()
+  // Service-role client: webhook_events has RLS enabled with NO policy
+  // (internal table written by the Asaas webhook via service role), so a
+  // user-context client would silently read 0 rows even for admins. The
+  // /admin route is already role-gated, so reading via service role is safe.
+  const supabase = createAdminClient()
   let query = supabase
     .from('webhook_events')
     .select(

@@ -11,9 +11,12 @@
  *  - `userId`: exact match on `user_id` (useful when looking up a
  *    specific user's trail).
  */
+import 'server-only'
+
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
-import { createClient } from '@/lib/supabase/server'
+// eslint-disable-next-line no-restricted-imports -- role-gated /admin viewer; audit_log has only own-row RLS, so the full trail must be read via the service-role client
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface AuditLogRow {
   id: string
@@ -41,7 +44,11 @@ export async function listAuditLog(
   const limit = opts.limit ?? 50
   const offset = opts.offset ?? 0
 
-  const supabase = await createClient()
+  // Service-role client: audit_log's only RLS policy is own-row SELECT
+  // (audit_log_user_select_own), with no admin policy — so a user-context
+  // client returns only the admin's OWN rows, hiding the rest of the trail.
+  // The /admin route is already role-gated, so reading via service role is safe.
+  const supabase = createAdminClient()
   let query = supabase
     .from('audit_log')
     .select(

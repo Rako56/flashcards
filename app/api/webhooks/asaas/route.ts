@@ -152,6 +152,26 @@ export async function POST(request: NextRequest) {
         },
         'access granted from webhook',
       )
+
+      // Best-effort: flip the ledger row (created 'pending' at checkout) to
+      // 'paid'. Access is already granted above — a ledger miss must NEVER
+      // fail the webhook, so this is logged, not thrown. Matched by the
+      // unique asaas_payment_id. Runs on the service-role client (purchases
+      // RLS has no INSERT/UPDATE policy).
+      const { error: ledgerError } = await supabase
+        .from('purchases')
+        .update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('asaas_payment_id', payload.payment.id)
+      if (ledgerError) {
+        log.warn(
+          { err: ledgerError.message, paymentId: payload.payment.id },
+          'purchases ledger update failed (non-fatal)',
+        )
+      }
     } else {
       log.info(
         { eventId: payload.id, event: payload.event },

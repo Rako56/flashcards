@@ -75,8 +75,8 @@ describe('listWebhookEvents', () => {
       },
     ]
     const { builder } = makeQueryStub({ data: rows, error: null, count: 1 })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listWebhookEvents } = await import('@/lib/admin/list-webhook-events')
     const result = await listWebhookEvents()
@@ -87,8 +87,8 @@ describe('listWebhookEvents', () => {
 
   it('forwards status filter as .eq(processed_status, ...)', async () => {
     const { builder, trace } = makeQueryStub({ data: [], error: null, count: 0 })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listWebhookEvents } = await import('@/lib/admin/list-webhook-events')
     await listWebhookEvents({ status: 'failed' })
@@ -97,8 +97,8 @@ describe('listWebhookEvents', () => {
 
   it('forwards eventTypePrefix as .like(event_type, "prefix%")', async () => {
     const { builder, trace } = makeQueryStub({ data: [], error: null, count: 0 })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listWebhookEvents } = await import('@/lib/admin/list-webhook-events')
     await listWebhookEvents({ eventTypePrefix: 'PAYMENT_' })
@@ -107,8 +107,8 @@ describe('listWebhookEvents', () => {
 
   it('returns empty + fires Sentry on db error', async () => {
     const { builder } = makeQueryStub({ data: null, error: { message: 'gone' }, count: null })
-    vi.doMock('@/lib/supabase/server', () => ({
-      createClient: () => Promise.resolve({ from: () => ({ select: () => builder }) }),
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createAdminClient: () => ({ from: () => ({ select: () => builder }) }),
     }))
     const { listWebhookEvents } = await import('@/lib/admin/list-webhook-events')
     const result = await listWebhookEvents()
