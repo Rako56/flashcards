@@ -14,6 +14,7 @@
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
+import { hasUserConcursoAccess } from '@/lib/access/has-concurso-access'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
@@ -96,6 +97,14 @@ export async function createSimuladoAction(
       ok: false,
       error: 'Concurso não resolvido. Acesse via o subdomínio do seu concurso.',
     }
+  }
+
+  // Gate creation on a live access grant (the detail/run pages also gate,
+  // but creation must not be the asymmetric path that lets an unpaid user
+  // enumerate question inventory — defense-in-depth alongside the RLS fix).
+  const hasAccess = await hasUserConcursoAccess(user.id, concurso.id)
+  if (!hasAccess) {
+    return { ok: false, error: 'Você ainda não tem acesso a este concurso.' }
   }
 
   // Fetch a candidate pool of active questions for this concurso.

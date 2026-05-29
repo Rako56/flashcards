@@ -23,7 +23,7 @@ import { awardXpAndStreak } from '@/lib/gamification/award-xp'
 import { childLogger } from '@/lib/observability/logger'
 import { captureWithCorrelation } from '@/lib/observability/sentry'
 import { scheduleNext } from '@/lib/srs/fsrs'
-import type { Rating } from '@/lib/srs/types'
+import type { CardState, Rating } from '@/lib/srs/types'
 import { createClient } from '@/lib/supabase/server'
 
 const RatingSchema = z.enum(['again', 'hard', 'good', 'easy'])
@@ -62,7 +62,7 @@ export async function rateCardAction(input: {
   // Read current progress (may be null for first-time review)
   const { data: progressRow } = await supabase
     .from('user_flashcard_progress')
-    .select('stability, difficulty, lapses, last_reviewed_at, due_at')
+    .select('stability, difficulty, lapses, last_reviewed_at, due_at, status')
     .eq('user_id', user.id)
     .eq('flashcard_id', parsed.data.cardId)
     .maybeSingle()
@@ -76,6 +76,9 @@ export async function rateCardAction(input: {
           lapses: progressRow.lapses,
           last_reviewed_at: progressRow.last_reviewed_at,
           due_at: progressRow.due_at,
+          // Persisted FSRS state — without it, every review recomputed as
+          // 'new', under-counting lapses and using the wrong scheduling branch.
+          state: progressRow.status as CardState,
         }
       : null,
     parsed.data.rating,
@@ -92,6 +95,7 @@ export async function rateCardAction(input: {
       lapses: nextReview.progress.lapses,
       last_reviewed_at: now.toISOString(),
       due_at: nextReview.due_at,
+      status: nextReview.log.state,
     },
     { onConflict: 'user_id,flashcard_id' },
   )

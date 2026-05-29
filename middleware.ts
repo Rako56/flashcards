@@ -46,6 +46,11 @@ export async function middleware(request: NextRequest) {
   // we always want to propagate x-correlation-id downstream.
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set(CORRELATION_HEADER_NAME, correlationId)
+  // Strip any client-supplied x-concurso-slug BEFORE (conditionally) setting
+  // our own. Otherwise, on apex/reserved hosts where no subdomain resolves,
+  // an inbound spoofed header would survive and be trusted by
+  // getConcursoFromHeaders() — letting a user target an arbitrary concurso.
+  requestHeaders.delete('x-concurso-slug')
   if (slug) {
     requestHeaders.set('x-concurso-slug', slug)
   }
