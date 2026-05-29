@@ -1,9 +1,11 @@
 import Link from 'next/link'
 
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'Admin — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

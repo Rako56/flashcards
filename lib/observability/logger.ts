@@ -44,6 +44,14 @@ export const logger: Logger = pino({
       '*.apiKey',
       'secret',
       '*.secret',
+      // PII (LGPD) — never emit raw cpf/email/full_name even if a future
+      // call passes them inside a bindings object.
+      'cpf',
+      '*.cpf',
+      'email',
+      '*.email',
+      'full_name',
+      '*.full_name',
     ],
     censor: '[REDACTED]',
   },

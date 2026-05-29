@@ -3,6 +3,8 @@ import { loginAction } from '@/app/auth/actions'
 
 export const metadata = {
   title: 'Entrar — Flashcards',
+  description:
+    'Entre na sua conta do Flashcards para retomar seus estudos de concurso com repetição espaçada, simulados e caderno de erros.',
 }
 
 export default async function LoginPage({
