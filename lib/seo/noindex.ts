@@ -25,7 +25,9 @@
  *   - /:concurso (per-concurso landings — public discovery)
  *   - /sobre, /termos, /privacidade, /reembolso (legal pages, want
  *     them in SERPs for trust signals)
- *   - /leaderboard (community page, public value)
+ *
+ * (/leaderboard WAS public, but is now noindexed — LGPD: it renders real
+ *  user names and is anon-viewable, so we keep those names out of SERPs.)
  */
 export const NOINDEX_METADATA = {
   robots: { index: false, follow: false },

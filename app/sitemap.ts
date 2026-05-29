@@ -1,50 +1,35 @@
 import type { MetadataRoute } from 'next'
+import { headers } from 'next/headers'
 
-import { createClient } from '@/lib/supabase/server'
+import { resolveSubdomain } from '@/lib/concurso/subdomain'
 
 /**
- * sitemap.xml — generated dynamically.
+ * sitemap.xml — HOST-AWARE. A sitemap may only list URLs on its own host
+ * (Google ignores cross-host entries), and this app is multi-tenant by
+ * subdomain. So each host serves only its OWN URLs:
+ *   - a concurso subdomain → that concurso's landing root
+ *   - the apex → the marketing pages
  *
- * Includes apex routes (/, /termos, /privacidade, /sobre, /reembolso)
- * + one entry per active concurso (Phase 9 will deepen this with
- * per-concurso topic landings).
- *
- * Excludes user-scoped pages (/study, /erros, /checkout) which appear
- * in robots.txt as disallowed anyway.
+ * Each concurso subdomain serves its own /sitemap.xml (Next renders this
+ * per host) and its own robots.txt points search engines at it. User-scoped
+ * pages (/study, /erros, /checkout, /settings) are disallowed in robots.txt.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://flashcards.com.br'
+  const host = (await headers()).get('host') ?? ''
+  const slug = resolveSubdomain(host)
 
-  // Apex pages (marketing)
-  const apex: MetadataRoute.Sitemap = [
+  // Concurso subdomain → only its own landing (same-host).
+  if (slug) {
+    return [{ url: `https://${slug}.flashcards.com.br/`, changeFrequency: 'weekly', priority: 1.0 }]
+  }
+
+  // Apex (marketing) host.
+  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://flashcards.com.br'
+  return [
     { url: `${baseUrl}/`, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${baseUrl}/sobre`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${baseUrl}/termos`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/privacidade`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/reembolso`, changeFrequency: 'yearly', priority: 0.3 },
   ]
-
-  // Per-concurso landing pages (each subdomain owns its own / route)
-  try {
-    const supabase = await createClient()
-    const { data: concursos } = await supabase
-      .from('admin_concursos')
-      .select('slug, updated_at')
-      .eq('status', 'publicado')
-      .not('slug', 'is', null)
-
-    const concursoEntries: MetadataRoute.Sitemap = (concursos ?? [])
-      .filter((c): c is { slug: string; updated_at: string } => Boolean(c.slug))
-      .map((c) => ({
-        url: `https://${c.slug}.flashcards.com.br/`,
-        lastModified: c.updated_at ? new Date(c.updated_at) : undefined,
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-      }))
-
-    return [...apex, ...concursoEntries]
-  } catch {
-    // Fall back to apex-only if DB is unreachable
-    return apex
-  }
 }

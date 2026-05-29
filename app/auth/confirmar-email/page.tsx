@@ -1,7 +1,10 @@
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
+
 import { ResendForm } from './resend-form'
 
 export const metadata = {
   title: 'Confirmar e-mail — Flashcards',
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

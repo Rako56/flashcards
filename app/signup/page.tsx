@@ -3,6 +3,8 @@ import { signupAction } from '@/app/auth/actions'
 
 export const metadata = {
   title: 'Criar conta — Flashcards',
+  description:
+    'Crie sua conta no Flashcards e estude para concursos com flashcards de repetição espaçada, simulados e caderno de erros — conteúdo curado, sem IA.',
 }
 
 export default function SignupPage() {

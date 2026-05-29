@@ -5,9 +5,13 @@ import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { getConcursoFromHeaders } from '@/lib/concurso/get-from-headers'
 import { getCurrentUser } from '@/lib/access/get-current-user'
 import { getWeeklyLeaderboard, type LeaderboardRow } from '@/lib/leaderboard/get-weekly'
+import { NOINDEX_METADATA } from '@/lib/seo/noindex'
 
 export const metadata = {
   title: 'Ranking semanal — Flashcards',
+  // LGPD: the leaderboard renders real full_name values and is anon-viewable.
+  // noindex keeps user names out of search engines (still shown in-app).
+  ...NOINDEX_METADATA,
 }
 
 export const dynamic = 'force-dynamic'

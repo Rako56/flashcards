@@ -54,6 +54,7 @@ export function StudySession({ initialQueue }: StudySessionProps) {
     good: 0,
     easy: 0,
   })
+  const [rateError, setRateError] = useState<string | null>(null)
 
   const card = initialQueue[index]
 
@@ -90,10 +91,12 @@ export function StudySession({ initialQueue }: StudySessionProps) {
     startTransition(async () => {
       const result = await rateCardAction({ cardId: card.id, rating, isSessionFinale })
       if (!result.ok) {
-        // Surface error in UI somehow — for now, swallow + log to Sentry
-        // via the network layer. Phase 5.3 adds a toast/snackbar.
+        // The rating did NOT persist — surface it so the user can retry
+        // (rateCardAction already logged + captured to Sentry).
+        setRateError('Não foi possível salvar sua resposta. Tente de novo.')
         return
       }
+      setRateError(null)
       setStats((s) => ({
         ...s,
         reviewed: s.reviewed + 1,
@@ -161,6 +164,11 @@ export function StudySession({ initialQueue }: StudySessionProps) {
       )}
 
       {isPending ? <p className="text-center text-xs text-foreground/50">Salvando…</p> : null}
+      {rateError ? (
+        <p role="alert" className="text-center text-sm font-medium text-destructive">
+          {rateError}
+        </p>
+      ) : null}
     </div>
   )
 }
